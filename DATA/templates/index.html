@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost Phone Data Exposure Simulator | Interactive Security Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #0d1117; color: #c9d1d9; font-family: 'Segoe UI', system-ui, sans-serif; }
+        
+        /* Smartphone Simulation Frame */
+        .phone-frame {
+            width: 340px;
+            height: 680px;
+            background: #161b22;
+            border: 12px solid #30363d;
+            border-radius: 40px;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.1);
+            overflow: hidden;
+        }
+        .phone-screen {
+            height: 100%;
+            background: linear-gradient(180deg, #1f242d 0%, #0d1117 100%);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        .phone-notch {
+            width: 120px;
+            height: 18px;
+            background: #30363d;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            margin: 0 auto 15px auto;
+        }
+        .notification-card {
+            background: rgba(33, 38, 45, 0.9);
+            border-left: 4px solid #f2994a;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+        .app-icon {
+            width: 55px;
+            height: 55px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .app-icon:hover { transform: scale(1.08); }
+        
+        /* Threat Dashboard Styling */
+        .card { background-color: #161b22; border: 1px solid #30363d; border-radius: 10px; margin-bottom: 20px; }
+        .card-header { border-bottom: 1px solid #30363d; font-weight: bold; color: #58a6ff; }
+        .risk-gauge { font-size: 2.5rem; font-weight: 800; border-radius: 10px; padding: 10px 20px; }
+        .risk-critical { background: rgba(218, 54, 51, 0.2); color: #ff6b6b; border: 1px solid #da3633; }
+        .risk-secure { background: rgba(35, 134, 54, 0.2); color: #3fb950; border: 1px solid #238636; }
+        .path-step { background: #21262d; border-left: 4px solid #58a6ff; padding: 10px; margin-bottom: 8px; border-radius: 4px; font-size: 0.9rem; }
+    </style>
+</head>
+<body class="p-4">
+
+    <!-- Hero Header -->
+    <div class="container-fluid mb-4 text-center">
+        <h1 class="fw-bold text-light">📱 Lost Phone Data Exposure Simulator</h1>
+        <p class="text-muted">A Real-Time Awareness Engine powered by ANSI C Data Structures (N-ary Trees, Dijkstra, Heaps)</p>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- LEFT PANEL: Virtual Smartphone Simulation -->
+            <div class="col-lg-4 mb-4">
+                <div class="phone-frame">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen">
+                        <div class="d-flex justify-content-between text-muted mb-3 fs-6">
+                            <span>9:41 AM</span>
+                            <span><i class="bi bi-wifi"></i> <i class="bi bi-battery-full"></i></span>
+                        </div>
+
+                        <!-- Notification Preview Overlay -->
+                        <div id="notifArea">
+                            <div class="notification-card">
+                                <div class="d-flex justify-content-between">
+                                    <strong class="text-warning"><i class="bi bi-chat-dots"></i> Bank SMS OTP</strong>
+                                    <small>Just Now</small>
+                                </div>
+                                <div class="text-light">Your OTP for login is <strong>882-910</strong>. Valid for 5 mins.</div>
+                            </div>
+                        </div>
+
+                        <div class="text-center my-3 text-muted">
+                            <hr class="border-secondary">
+                            <small>Found Smartphone UI</small>
+                        </div>
+
+                        <!-- Grid Apps -->
+                        <div class="row text-center g-2 mt-auto mb-4">
+                            <div class="col-3">
+                                <div class="app-icon bg-primary text-white mx-auto" onclick="triggerAppAccess('Notes')">
+                                    <i class="bi bi-journal-text"></i>
+                                </div>
+                                <small>Notes</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="app-icon bg-success text-white mx-auto" onclick="triggerAppAccess('Photos')">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                                <small>Photos</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="app-icon bg-warning text-dark mx-auto" onclick="triggerAppAccess('Vault')">
+                                    <i class="bi bi-key-fill"></i>
+                                </div>
+                                <small>Vault</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="app-icon bg-danger text-white mx-auto" onclick="triggerAppAccess('Banking')">
+                                    <i class="bi bi-bank"></i>
+                                </div>
+                                <small>Banking</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: Live Threat Dashboard & Interactive Controls -->
+            <div class="col-lg-8">
+                
+                <!-- Interactive Mitigation Toggles -->
+                <div class="card p-3">
+                    <div class="card-header bg-transparent mb-2">🛠️ Apply Defensive Security Controls</div>
+                    <div class="row text-light">
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="toggleNotifs" onchange="updateSimulation()">
+                                <label class="form-check-label" for="toggleNotifs">Hide Lockscreen OTPs</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="toggleAppLock" onchange="updateSimulation()">
+                                <label class="form-check-label" for="toggleAppLock">Biometric App Lock</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="toggleFDE" onchange="updateSimulation()">
+                                <label class="form-check-label" for="toggleFDE">Full Disk Encryption (FDE)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Exposure Metric -->
+                    <div class="col-md-5">
+                        <div class="card text-center p-3">
+                            <div class="card-header bg-transparent">Exposure & Threat Level</div>
+                            <div class="card-body">
+                                <div id="exposureGauge" class="risk-gauge risk-critical mb-2">85%</div>
+                                <small id="threatStatus" class="text-danger fw-bold">CRITICAL EXPOSURE DETECTED</small>
+                                <hr class="border-secondary">
+                                <p class="text-muted mb-0">Exploitation Speed: <strong id="attackSpeed" class="text-light">60</strong> Seconds</p>
+                            </div>
+                        </div>
+
+                        <!-- Stolen Data Log -->
+                        <div class="card">
+                            <div class="card-header bg-transparent">🔑 Intercepted PII & Credentials</div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush text-start" id="stolenLog">
+                                    <li class="list-group-item bg-transparent text-warning border-secondary">🔴 Bank 2FA SMS Intercepted</li>
+                                    <li class="list-group-item bg-transparent text-light border-secondary">🟡 Plaintext ATM PINs in Notes</li>
+                                    <li class="list-group-item bg-transparent text-light border-secondary">🟡 Aadhaar & Passport Photo ID</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shortest Attack Path & Max-Heap Asset Table -->
+                    <div class="col-md-7">
+                        <div class="card">
+                            <div class="card-header bg-transparent">⚡ Shortest Exploit Route (Dijkstra + Min-Heap)</div>
+                            <div class="card-body" id="attackPathContainer">
+                                <!-- Dynamic Path Inserted Here -->
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header bg-transparent">📊 Priority Asset Ranking (Max-Heap)</div>
+                            <div class="card-body">
+                                <table class="table table-dark table-sm table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Exposed Asset</th>
+                                            <th>Sensitivity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="assetTable">
+                                        <!-- Dynamic Asset Rows Inserted Here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Defensive Checklist -->
+                <div class="card mt-2 p-3">
+                    <h5 class="text-info"><i class="bi bi-shield-check"></i> Phone Hardening Checklist</h5>
+                    <ul class="mb-0 text-muted">
+                        <li>Disable notification previews for sensitive apps on your lock screen.</li>
+                        <li>Use biometric authentication (Face ID / Fingerprint) for secondary app locking.</li>
+                        <li>Avoid storing passwords or identity document scans in plaintext notes.</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateSimulation() {
+            const hideNotifs = document.getElementById('toggleNotifs').checked;
+            const enableFde = document.getElementById('toggleFDE').checked;
+            const appLock = document.getElementById('toggleAppLock').checked;
+
+            // UI Toggle Adjustments
+            document.getElementById('notifArea').style.display = hideNotifs ? 'none' : 'block';
+
+            fetch('/api/simulate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    dir: 'mock_phone',
+                    hide_notifs: hideNotifs,
+                    enable_fde: enableFde,
+                    app_lock: appLock
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const gauge = document.getElementById('exposureGauge');
+                gauge.innerText = `${data.exposure_score}%`;
+                
+                if (data.exposure_score > 50) {
+                    gauge.className = 'risk-gauge risk-critical';
+                    document.getElementById('threatStatus').innerText = 'CRITICAL EXPOSURE DETECTED';
+                    document.getElementById('threatStatus').className = 'text-danger fw-bold';
+                } else {
+                    gauge.className = 'risk-gauge risk-secure';
+                    document.getElementById('threatStatus').innerText = 'DEVICE SECURED';
+                    document.getElementById('threatStatus').className = 'text-success fw-bold';
+                }
+
+                document.getElementById('attackSpeed').innerText = data.attack_time_seconds;
+
+                // Render Attack Path
+                const pathContainer = document.getElementById('attackPathContainer');
+                pathContainer.innerHTML = '';
+                data.attack_path.forEach((step, index) => {
+                    pathContainer.innerHTML += `<div class="path-step"><strong>Step ${index + 1}:</strong> ${step}</div>`;
+                });
+
+                // Render Max-Heap Asset Table
+                const assetTable = document.getElementById('assetTable');
+                assetTable.innerHTML = '';
+                if (data.ranked_assets.length === 0) {
+                    assetTable.innerHTML = '<tr><td colspan="3" class="text-success text-center">No Assets Exposed</td></tr>';
+                } else {
+                    data.ranked_assets.forEach((asset, index) => {
+                        assetTable.innerHTML += `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${asset.name}</td>
+                                <td><span class="badge bg-danger">${asset.score} / 100</span></td>
+                            </tr>`;
+                    });
+                }
+            });
+        }
+
+        function triggerAppAccess(appName) {
+            alert(`[Simulation Event] Intercepted access attempt to: ${appName}`);
+        }
+
+        window.onload = updateSimulation;
+    </script>
+</body>
+</html>
