@@ -1,93 +1,95 @@
-// src/main.c - Dual Mode Execution (CLI Scan & Interactive Scenario Engine)
 #include "simulator.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct {
-    int hide_notifications;
-    int enable_fde;
-    int enable_app_lock;
-} SecurityToggles;
-
 int main(int argc, char *argv[]) {
-    const char *target_dir = "mock_phone";
-    SecurityToggles toggles = {0, 0, 0};
+    SecurityControlHashTable *controls = create_control_hash_table();
 
-    // Parse command line arguments for interactive web toggles
+    int time_tick_min = 0;
+    int threat_profile = 0; // 0 = Casual Finder, 1 = Targeted Thief
+
+    // Parse command line flag inputs into Hash Table O(1)
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--hide-notifs") == 0) toggles.hide_notifications = 1;
-        if (strcmp(argv[i], "--enable-fde") == 0) toggles.enable_fde = 1;
-        if (strcmp(argv[i], "--app-lock") == 0) toggles.enable_app_lock = 1;
-        if (argv[i][0] != '-') target_dir = argv[i];
+        if (strcmp(argv[i], "--hide-notifs") == 0) set_control_flag(controls, "hide_notifs", 1);
+        if (strcmp(argv[i], "--app-lock") == 0) set_control_flag(controls, "app_lock", 1);
+        if (strcmp(argv[i], "--enable-fde") == 0) set_control_flag(controls, "enable_fde", 1);
+        if (strcmp(argv[i], "--sim-pin") == 0) set_control_flag(controls, "sim_pin", 1);
+        if (strcmp(argv[i], "--remote-wipe") == 0) set_control_flag(controls, "remote_wipe", 1);
+        if (strncmp(argv[i], "--time=", 7) == 0) time_tick_min = atoi(argv[i] + 7);
+        if (strcmp(argv[i], "--thief") == 0) threat_profile = 1;
     }
+
+    // Evaluate flags using O(1) Hash Table Lookups
+    int f_notifs = get_control_flag(controls, "hide_notifs");
+    int f_applock = get_control_flag(controls, "app_lock");
+    int f_fde = get_control_flag(controls, "enable_fde");
+    int f_simpin = get_control_flag(controls, "sim_pin");
+    int f_wipe = get_control_flag(controls, "remote_wipe");
 
     MaxHeap *risk_heap = create_max_heap(50);
-    FileNode *root = scan_real_directory(target_dir);
 
-    // 1. Module 1: File Exposure Calculation
-    int exposed_files = 0;
-    if (!toggles.enable_fde) {
-        if (risk_heap) {
-            insert_risk_item(risk_heap, "bank_passwords.txt", 98);
-            if (!toggles.enable_app_lock) {
-                insert_risk_item(risk_heap, "national_id_card.pdf", 95);
-                insert_risk_item(risk_heap, "credit_card_screenshot.png", 90);
-            }
-        }
-        exposed_files = toggles.enable_app_lock ? 1 : 3;
+    // Build Attack Graph
+    AttackGraph *graph = create_attack_graph(5);
+    set_node_label(graph, 0, "Physical Lockscreen Access");
+    set_node_label(graph, 1, "Lock Screen Notification Intercept");
+    set_node_label(graph, 2, "Primary Email & 2FA Reset");
+    set_node_label(graph, 3, "Notes Plaintext Credentials");
+    set_node_label(graph, 4, "Complete Financial & Cloud Takeover");
+
+    // Dynamic Edge Weights based on Control Flags
+    int notif_weight = f_notifs ? INF : 10;
+    int notes_weight = f_applock ? INF : 15;
+    int sim_weight = f_simpin ? INF : 20;
+    if (f_wipe && time_tick_min >= 15) {
+        notif_weight = INF;
+        notes_weight = INF;
+        sim_weight = INF;
     }
 
-    // 2. Module 2 & 3: Attack Path Engine (Dijkstra + Min-Heap)
-    AttackGraph *graph = create_attack_graph(5);
-    set_node_label(graph, 0, "Physical Access");
-    set_node_label(graph, 1, "Lockscreen Notification Preview");
-    set_node_label(graph, 2, "2FA OTP Interception");
-    set_node_label(graph, 3, "Notes Plaintext Extraction");
-    set_node_label(graph, 4, "Bank Account Takeover");
-
-    // Dynamic edge weight calculation based on security mitigations
-    int otpt_time = toggles.hide_notifications ? INF : 15;
-    int notes_time = toggles.enable_app_lock ? INF : 20;
-    int fde_penalty = toggles.enable_fde ? 300 : 0;
-
-    add_attack_edge(graph, 0, 1, 10 + fde_penalty);
-    add_attack_edge(graph, 1, 2, otpt_time);
-    add_attack_edge(graph, 0, 3, notes_time + fde_penalty);
-    add_attack_edge(graph, 2, 4, 25);
-    add_attack_edge(graph, 3, 4, 15);
+    add_attack_edge(graph, 0, 1, notif_weight);
+    add_attack_edge(graph, 1, 2, sim_weight);
+    add_attack_edge(graph, 0, 3, notes_weight);
+    add_attack_edge(graph, 2, 4, 15);
+    add_attack_edge(graph, 3, 4, 10);
 
     int path_nodes[10];
     int path_len = 0;
     int attack_time = run_dijkstra_pathfinder(graph, 0, 4, path_nodes, &path_len);
 
-    if (attack_time >= INF / 2) attack_time = 999; // Path blocked by controls
+    if (attack_time >= INF / 2) attack_time = 999;
 
-    // Calculate dynamic threat exposure percentage
-    int base_risk = 100 - (attack_time / 3);
-    if (toggles.enable_fde) base_risk -= 50;
-    if (toggles.hide_notifications) base_risk -= 20;
-    if (toggles.enable_app_lock) base_risk -= 20;
-    if (base_risk < 5) base_risk = 5; // Minimal residual risk
+    // Calculate Domain Exposures
+    int identity_exp = 85, financial_exp = 95, cloud_exp = 70;
+    if (f_notifs) { identity_exp -= 30; financial_exp -= 40; }
+    if (f_applock) { financial_exp -= 35; cloud_exp -= 40; }
+    if (f_fde) { identity_exp -= 25; cloud_exp -= 20; }
+    if (f_wipe && time_tick_min >= 15) { identity_exp = 5; financial_exp = 5; cloud_exp = 5; }
 
-    // 3. Module 4: Hash Table Credentials
-    HashTable *vault = create_hash_table();
+    if (identity_exp < 5) identity_exp = 5;
+    if (financial_exp < 5) financial_exp = 5;
+    if (cloud_exp < 5) cloud_exp = 5;
 
-    // Output JSON for Web Dashboard
+    int overall_risk = (identity_exp + financial_exp + cloud_exp) / 3;
+
+    // Populate Max-Heap Priority Evaluator
+    if (financial_exp > 20) insert_risk_item(risk_heap, "Bank OTP & UPI Apps", financial_exp, "Financial");
+    if (identity_exp > 20) insert_risk_item(risk_heap, "Identity Documents (ID/Passport)", identity_exp, "Identity");
+    if (cloud_exp > 20) insert_risk_item(risk_heap, "Email & Cloud Storage Sessions", cloud_exp, "Work/Cloud");
+
+    // Output Structured JSON for Flask
     printf("{\n");
-    printf("  \"target_dir\": \"%s\",\n", target_dir);
-    printf("  \"exposure_score\": %d,\n", base_risk);
+    printf("  \"exposure_score\": %d,\n", overall_risk);
     printf("  \"attack_time_seconds\": %d,\n", attack_time);
-    printf("  \"exposed_files_count\": %d,\n", exposed_files);
-    printf("  \"mitigations\": {\n");
-    printf("    \"hide_notifications\": %s,\n", toggles.hide_notifications ? "true" : "false");
-    printf("    \"enable_fde\": %s,\n", toggles.enable_fde ? "true" : "false");
-    printf("    \"enable_app_lock\": %s\n", toggles.enable_app_lock ? "true" : "false");
+    printf("  \"timeline_min\": %d,\n", time_tick_min);
+    printf("  \"domains\": {\n");
+    printf("    \"identity\": %d,\n", identity_exp);
+    printf("    \"financial\": %d,\n", financial_exp);
+    printf("    \"cloud\": %d\n", cloud_exp);
     printf("  },\n");
-    
     printf("  \"attack_path\": [");
     if (attack_time == 999) {
-        printf("\"Attack Path Blocked by Active Mitigations\"");
+        printf("\"Attack Chain Interrupted & Blocked by Active Controls\"");
     } else {
         for (int i = 0; i < path_len; i++) {
             printf("\"%s\"%s", graph->nodes[path_nodes[i]].label, (i < path_len - 1) ? ", " : "");
@@ -99,15 +101,14 @@ int main(int argc, char *argv[]) {
     int count = risk_heap->size;
     for (int i = 0; i < count; i++) {
         RiskItem item = extract_highest_risk(risk_heap);
-        printf("    {\"name\": \"%s\", \"score\": %d}%s\n", 
-               item.item_name, item.risk_score, (i < count - 1) ? "," : "");
+        printf("    {\"name\": \"%s\", \"score\": %d, \"domain\": \"%s\"}%s\n", 
+               item.item_name, item.risk_score, item.domain, (i < count - 1) ? "," : "");
     }
     printf("  ]\n");
     printf("}\n");
 
-    free_file_tree(root);
+    free_control_hash_table(controls);
     free_attack_graph(graph);
-    free_hash_table(vault);
     free_max_heap(risk_heap);
 
     return 0;
