@@ -1,28 +1,33 @@
-Set-Content -Path "README.md" -Value '# 🛡️ Lost Phone Data Exposure Simulator
+# 🛡️ PhoneExposure Lab — Lost Phone Exposure Simulator
 
-An interactive cybersecurity risk modeling engine and web application that simulates data exposure when an unencrypted mobile device is lost or stolen.
-
-## 🚀 Key Features & DSA Architecture
-
-* **File System Representation (N-ary Tree):** Models folder hierarchies (`/storage/DCIM`, `/Documents`) using Left-Child Right-Sibling pointers.
-* **Attack Path Computation (Dijkstra + Min-Heap):** Calculates the shortest time (in seconds) for an attacker to achieve full account takeover ($O((V+E)\log V)$).
-* **Asset Exposure Ranking (Max-Heap):** Dynamically ranks compromised personal data by sensitivity score (1–100) in $O(\log N)$ time.
-* **Credential Storage (Hash Table):** Simulates $O(1)$ extraction of saved OAuth session tokens and browser passwords using linked-list chaining.
-* **Interactive Web Dashboard (Flask + Bootstrap):** Real-time smartphone simulation interface with live security control toggles.
+An interactive cybersecurity risk modeling engine and web sandbox that visually simulates data exposure vectors when an unencrypted or weakly secured mobile device is lost or stolen.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Data Structures & Core System Architecture
 
-* **Backend Engine:** ANSI C (C99 Standard)
-* **API Wrapper:** Python 3 (Flask)
-* **Frontend UI:** HTML5, CSS3, JavaScript, Bootstrap 5
-* **Build Tools:** GCC, Make, Git, Valgrind
+PhoneExposure Lab bridges a low-level ANSI C algorithmic engine with a web dashboard via a Python Flask API bridge.
+
+* **Security Controls Flag Engine (Hash Table):** Evaluates active configuration flags (`hide_notifs`, `app_lock`, `enable_fde`, `sim_pin`, `remote_wipe`) in $O(1)$ constant time using linked-list chaining.
+* **Exploit Path Traversal (Directed Graph + Dijkstra's Algorithm):** Calculates the shortest time and vulnerability sequence for an attacker to achieve account takeover ($O((V + E) \log V)$).
+* **Asset Exposure Ranking (Max-Heap Priority Queue):** Dynamically ranks compromised personal data by sensitivity score (1–100) in $O(\log N)$ time.
+* **Directory Hierarchy Mapping (N-ary Tree):** Models folder structures using Left-Child Right-Sibling pointer representations.
 
 ---
 
-## 🏃 Quickstart Guide
+## 📁 Repository Structure
 
-### 1. Build the C Engine
-```bash
-gcc -Iinclude src/*.c -o simulator.exe
+```text
+DATA/
+├── include/
+│   └── simulator.h      # Shared C structure definitions & function prototypes
+├── src/
+│   ├── auth_vault.c     # Hash Table implementation for control flags
+│   ├── attack_graph.c   # Graph edge & vertex management
+│   ├── pathfinder.c     # Dijkstra shortest path algorithm
+│   ├── risk_evaluator.c # Max-Heap priority queue implementation
+│   ├── filesystem.c     # N-ary file tree traversal
+│   └── main.c           # Dynamic JSON CLI output wrapper
+├── templates/
+│   └── index.html       # High-contrast dual-panel web dashboard
+└── app.py               # Python Flask bridge executing compiled C binary
