@@ -9,7 +9,6 @@
     <style>
         body { background-color: #0b0e14; color: #f0f6fc; font-family: 'Segoe UI', system-ui, sans-serif; }
         
-        /* Modern Top Navigation Tab Bar */
         .tab-bar-container {
             background: #161b22;
             border: 1px solid #30363d;
@@ -34,7 +33,27 @@
             box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
         }
 
-        /* Phone Frame with Dynamic Island Header */
+        .card-dark {
+            background-color: #161b22 !important;
+            border: 1px solid #30363d !important;
+            border-radius: 16px;
+            color: #f0f6fc !important;
+        }
+        .card-header-custom {
+            font-weight: 700;
+            color: #58a6ff !important;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-check-label {
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            font-size: 0.9rem;
+        }
+
         .phone-frame {
             width: 330px;
             height: 670px;
@@ -56,14 +75,13 @@
             position: relative;
         }
         
-        /* Dynamic Island Cutout */
         .dynamic-island-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0 10px;
             margin-bottom: 12px;
-            color: #ffffff;
+            color: #ffffff !important;
             font-weight: 600;
             font-size: 0.85rem;
         }
@@ -87,12 +105,12 @@
             border: 1px solid #333;
         }
 
-        /* Gauge & Score Risk Factors */
         .gauge-card {
-            background: #161b22;
-            border: 1px solid #30363d;
+            background: #161b22 !important;
+            border: 1px solid #30363d !important;
             border-radius: 16px;
             padding: 20px;
+            color: #f0f6fc !important;
         }
         .gauge-wrapper {
             position: relative;
@@ -123,16 +141,28 @@
             transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
             border-radius: 2px;
         }
+
+        /* Fix SCORE RISK FACTORS Label Visibility */
+        .risk-factors-heading {
+            color: #8b949e !important;
+            font-weight: 700 !important;
+            font-size: 0.8rem !important;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
         .risk-factor-tag {
-            background: #21262d;
-            border: 1px solid #30363d;
-            padding: 6px 12px;
+            background: #21262d !important;
+            border: 1px solid #30363d !important;
+            padding: 8px 12px;
             border-radius: 8px;
-            font-size: 0.8rem;
-            color: #c9d1d9;
+            font-size: 0.85rem;
+            color: #ffffff !important;
             display: flex;
             align-items: center;
             gap: 8px;
+            font-weight: 600;
         }
         .risk-dot {
             width: 8px;
@@ -153,12 +183,22 @@
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
-        .path-step { background: #21262d; border-left: 4px solid #58a6ff; padding: 10px; margin-bottom: 8px; border-radius: 6px; }
+
+        .path-step { 
+            background: #21262d !important; 
+            border: 1px solid #30363d !important;
+            border-left: 5px solid #58a6ff !important; 
+            padding: 12px; 
+            margin-bottom: 10px; 
+            border-radius: 8px; 
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            font-size: 0.95rem;
+        }
     </style>
 </head>
 <body class="p-3">
 
-    <!-- Top Tab Navigation -->
     <div class="text-center my-3">
         <div class="tab-bar-container">
             <button class="nav-tab-btn active" onclick="switchTab(this, 'dashboardTab')">Dashboard</button>
@@ -170,12 +210,10 @@
     </div>
 
     <div class="container-fluid mt-4">
-        <!-- Main Dashboard View -->
         <div id="dashboardTab" class="tab-content-view">
-            <!-- Security Toggles -->
-            <div class="card p-3 mb-4">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-info fw-bold"><i class="bi bi-sliders"></i> Security Controls Configuration</span>
+            <div class="card-dark p-3 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="card-header-custom"><i class="bi bi-sliders"></i> Security Controls Configuration</span>
                     <button class="btn btn-sm btn-outline-warning" onclick="resetToDefault()">
                         <i class="bi bi-arrow-counterclockwise"></i> Reset to Default
                     </button>
@@ -215,12 +253,9 @@
             </div>
 
             <div class="row">
-                <!-- Smartphone Interface -->
                 <div class="col-lg-4 mb-4">
                     <div class="phone-frame">
                         <div class="phone-screen">
-                            
-                            <!-- Dynamic Island Top Interface -->
                             <div class="dynamic-island-header">
                                 <span id="clockDisplay">1:00</span>
                                 <div class="dynamic-island">
@@ -234,7 +269,6 @@
                                 </div>
                             </div>
 
-                            <!-- Notifications -->
                             <div id="notifArea" class="mt-2">
                                 <div class="p-2 mb-2 rounded bg-dark border border-secondary text-light small">
                                     <strong class="text-warning"><i class="bi bi-chat-dots"></i> Bank SMS OTP</strong>
@@ -242,31 +276,30 @@
                                 </div>
                             </div>
 
-                            <!-- App Grid -->
                             <div class="row text-center g-2 mt-auto mb-3">
                                 <div class="col-3">
                                     <div class="app-icon bg-warning text-dark mx-auto" onclick="alert('Notes: Stored ATM PINs Exposed')">
                                         <i class="bi bi-journal-text"></i>
                                     </div>
-                                    <small>Notes</small>
+                                    <small class="text-light">Notes</small>
                                 </div>
                                 <div class="col-3">
                                     <div class="app-icon bg-success text-white mx-auto" onclick="alert('Photos: ID Scans Exposed')">
                                         <i class="bi bi-image"></i>
                                     </div>
-                                    <small>Photos</small>
+                                    <small class="text-light">Photos</small>
                                 </div>
                                 <div class="col-3">
                                     <div class="app-icon bg-danger text-white mx-auto" onclick="alert('Banking: Active Session Hijacked')">
                                         <i class="bi bi-bank"></i>
                                     </div>
-                                    <small>Banking</small>
+                                    <small class="text-light">Banking</small>
                                 </div>
                                 <div class="col-3">
                                     <div class="app-icon bg-info text-white mx-auto" onclick="alert('Mail: OAuth Token Leaked')">
                                         <i class="bi bi-envelope"></i>
                                     </div>
-                                    <small>Mail</small>
+                                    <small class="text-light">Mail</small>
                                 </div>
                             </div>
 
@@ -274,10 +307,8 @@
                     </div>
                 </div>
 
-                <!-- SOC Dashboard & Circular Risk Gauge -->
                 <div class="col-lg-8">
                     <div class="row">
-                        <!-- Cyber Risk Gauge -->
                         <div class="col-md-6 mb-4">
                             <div class="gauge-card text-center">
                                 <h5 class="text-light fw-bold mb-3">Cyber Risk Score</h5>
@@ -285,12 +316,12 @@
                                     <div class="gauge-arc"></div>
                                     <div id="gaugeNeedle" class="gauge-needle"></div>
                                 </div>
-                                <h2 id="riskScoreText" class="fw-bold text-light mb-0">88%</h2>
+                                <h2 id="riskScoreText" class="fw-bold text-light mb-0">83%</h2>
                                 <small id="riskLevelLabel" class="text-danger fw-bold">CRITICAL RISK</small>
 
-                                <!-- Score Risk Factors Grid -->
                                 <div class="text-start mt-4">
-                                    <small class="text-muted fw-bold d-block mb-2">SCORE RISK FACTORS</small>
+                                    <!-- High Contrast Label Fix -->
+                                    <span class="risk-factors-heading">SCORE RISK FACTORS</span>
                                     <div class="row g-2">
                                         <div class="col-6">
                                             <div class="risk-factor-tag"><div id="rf1" class="risk-dot active"></div> External Network</div>
@@ -309,10 +340,9 @@
                             </div>
                         </div>
 
-                        <!-- Dijkstra Shortest Attack Path -->
                         <div class="col-md-6 mb-4">
-                            <div class="card h-100 p-3">
-                                <div class="card-header bg-transparent mb-2">⚡ Shortest Attack Path (Dijkstra)</div>
+                            <div class="card-dark h-100 p-3">
+                                <div class="card-header-custom mb-3"><i class="bi bi-lightning-charge-fill text-warning"></i> Shortest Attack Path (Dijkstra)</div>
                                 <div id="attackPathContainer"></div>
                             </div>
                         </div>
@@ -321,27 +351,25 @@
             </div>
         </div>
 
-        <!-- Placeholder Views for Tab Switches -->
-        <div id="assessmentsTab" class="tab-content-view d-none p-4 text-center">
+        <div id="assessmentsTab" class="tab-content-view d-none p-4 text-center text-light">
             <h3>📋 Security Assessments View</h3>
             <p class="text-muted">Automated C-DSA compliance audits and vulnerability checks.</p>
         </div>
-        <div id="globalReportsTab" class="tab-content-view d-none p-4 text-center">
+        <div id="globalReportsTab" class="tab-content-view d-none p-4 text-center text-light">
             <h3>🌐 Global Threat Reports</h3>
             <p class="text-muted">Aggregated forensic stats and regional device compromise logs.</p>
         </div>
-        <div id="threatFeedTab" class="tab-content-view d-none p-4 text-center">
+        <div id="threatFeedTab" class="tab-content-view d-none p-4 text-center text-light">
             <h3>📡 Live Threat Feed</h3>
             <p class="text-muted">Real-time vulnerability feeds and active exploit signatures.</p>
         </div>
-        <div id="riskTab" class="tab-content-view d-none p-4 text-center">
+        <div id="riskTab" class="tab-content-view d-none p-4 text-center text-light">
             <h3>⚖️ Risk Matrix</h3>
             <p class="text-muted">Priority asset ranking derived from C Max-Heap evaluator.</p>
         </div>
     </div>
 
     <script>
-        // Tab Switching Logic
         function switchTab(btn, tabId) {
             document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -350,7 +378,6 @@
             document.getElementById(tabId).classList.remove('d-none');
         }
 
-        // Reset All Controls to Default State
         function resetToDefault() {
             document.getElementById('toggleNotifs').checked = false;
             document.getElementById('toggleAppLock').checked = false;
@@ -360,7 +387,6 @@
             updateSimulation();
         }
 
-        // Simulation Update Pipeline
         function updateSimulation() {
             const hideNotifs = document.getElementById('toggleNotifs').checked;
             document.getElementById('notifArea').style.display = hideNotifs ? 'none' : 'block';
@@ -383,11 +409,9 @@
                 const score = data.exposure_score;
                 document.getElementById('riskScoreText').innerText = `${score}%`;
 
-                // Rotate Gauge Needle (-90deg to +90deg based on score 0-100)
                 const angle = -90 + (score * 1.8);
                 document.getElementById('gaugeNeedle').style.transform = `translateX(-50%) rotate(${angle}deg)`;
 
-                // Update Risk Factors & Status
                 const levelLabel = document.getElementById('riskLevelLabel');
                 const rf1 = document.getElementById('rf1');
                 const rf2 = document.getElementById('rf2');
@@ -407,12 +431,13 @@
                     rf4.className = 'risk-dot';
                 }
 
-                // Render Shortest Path
                 const pathContainer = document.getElementById('attackPathContainer');
                 pathContainer.innerHTML = '';
-                data.attack_path.forEach((step, index) => {
-                    pathContainer.innerHTML += `<div class="path-step"><strong>Step ${index + 1}:</strong> ${step}</div>`;
-                });
+                if (Array.isArray(data.attack_path)) {
+                    data.attack_path.forEach((step) => {
+                        pathContainer.innerHTML += `<div class="path-step">${step}</div>`;
+                    });
+                }
             });
         }
 

@@ -1,4 +1,3 @@
-// src/main.c
 #include "simulator.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,15 +33,9 @@ int main(int argc, char *argv[]) {
     set_node_label(graph, 3, "Notes Plaintext Credentials");
     set_node_label(graph, 4, "Complete Financial & Cloud Takeover");
 
-    int notif_weight = f_notifs ? INF : 10;
-    int notes_weight = f_applock ? INF : 15;
-    int sim_weight = f_simpin ? INF : 20;
-
-    if (f_wipe && time_tick_min >= 15) {
-        notif_weight = INF;
-        notes_weight = INF;
-        sim_weight = INF;
-    }
+    int notif_weight = (f_notifs || f_wipe) ? INF : 10;
+    int notes_weight = (f_applock || f_wipe) ? INF : 15;
+    int sim_weight = (f_simpin || f_wipe) ? INF : 20;
 
     add_attack_edge(graph, 0, 1, notif_weight);
     add_attack_edge(graph, 1, 2, sim_weight);
@@ -61,7 +54,9 @@ int main(int argc, char *argv[]) {
     if (f_applock) { financial_exp -= 30; cloud_exp -= 35; }
     if (f_simpin) { identity_exp -= 20; financial_exp -= 25; }
     if (f_fde) { identity_exp -= 20; cloud_exp -= 20; }
-    if (f_wipe && time_tick_min >= 15) { identity_exp = 5; financial_exp = 5; cloud_exp = 5; }
+    
+    // Remote Find/Wipe drops risk to minimal lockdown level immediately
+    if (f_wipe) { identity_exp = 10; financial_exp = 10; cloud_exp = 10; }
 
     if (identity_exp < 5) identity_exp = 5;
     if (financial_exp < 5) financial_exp = 5;
@@ -70,24 +65,23 @@ int main(int argc, char *argv[]) {
     int overall_risk = (identity_exp + financial_exp + cloud_exp) / 3;
 
     if (financial_exp > 20) insert_risk_item(risk_heap, "Bank OTP & UPI Apps", financial_exp, "Financial");
-    if (identity_exp > 20) insert_risk_item(risk_heap, "Identity Documents (ID/Passport)", identity_exp, "Identity");
+    if (identity_exp > 20) insert_risk_item(risk_heap, "Identity Documents", identity_exp, "Identity");
     if (cloud_exp > 20) insert_risk_item(risk_heap, "Email & Cloud Storage Sessions", cloud_exp, "Work/Cloud");
 
     printf("{\n");
     printf("  \"exposure_score\": %d,\n", overall_risk);
     printf("  \"attack_time_seconds\": %d,\n", display_attack_time);
-    printf("  \"timeline_min\": %d,\n", time_tick_min);
     printf("  \"domains\": {\n");
     printf("    \"identity\": %d,\n", identity_exp);
     printf("    \"financial\": %d,\n", financial_exp);
     printf("    \"cloud\": %d\n", cloud_exp);
     printf("  },\n");
     printf("  \"attack_path\": [");
-    if (display_attack_time == 999) {
-        printf("\"Attack Path Blocked by Active Controls (SIM/App Lock/FDE)\"");
+    if (display_attack_time == 999 || f_wipe) {
+        printf("\"Remote Find/Wipe Triggered: Device Erased & Attack Interrupted\"");
     } else {
         for (int i = 0; i < path_len; i++) {
-            printf("\"%s\"%s", graph->nodes[path_nodes[i]].label, (i < path_len - 1) ? ", " : "");
+            printf("\"Step %d: %s\"%s", i + 1, graph->nodes[path_nodes[i]].label, (i < path_len - 1) ? ", " : "");
         }
     }
     printf("],\n");
