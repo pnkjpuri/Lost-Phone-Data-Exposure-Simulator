@@ -5,17 +5,14 @@
 
 int main(int argc, char *argv[]) {
     SecurityControlHashTable *controls = create_control_hash_table();
-    int time_tick_min = 0;
-    int threat_profile = 0;
 
+    // Parse all incoming security control flags
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--hide-notifs") == 0) set_control_flag(controls, "hide_notifs", 1);
         if (strcmp(argv[i], "--app-lock") == 0) set_control_flag(controls, "app_lock", 1);
         if (strcmp(argv[i], "--enable-fde") == 0) set_control_flag(controls, "enable_fde", 1);
         if (strcmp(argv[i], "--sim-pin") == 0) set_control_flag(controls, "sim_pin", 1);
         if (strcmp(argv[i], "--remote-wipe") == 0) set_control_flag(controls, "remote_wipe", 1);
-        if (strncmp(argv[i], "--time=", 7) == 0) time_tick_min = atoi(argv[i] + 7);
-        if (strcmp(argv[i], "--thief") == 0) threat_profile = 1;
     }
 
     int f_notifs = get_control_flag(controls, "hide_notifs");
@@ -33,6 +30,7 @@ int main(int argc, char *argv[]) {
     set_node_label(graph, 3, "Notes Plaintext Credentials");
     set_node_label(graph, 4, "Complete Financial & Cloud Takeover");
 
+    // Dynamic Dijkstra edge weights based on active toggles
     int notif_weight = (f_notifs || f_wipe) ? INF : 10;
     int notes_weight = (f_applock || f_wipe) ? INF : 15;
     int sim_weight = (f_simpin || f_wipe) ? INF : 20;
@@ -46,16 +44,17 @@ int main(int argc, char *argv[]) {
     int path_nodes[10];
     int path_len = 0;
     int attack_time = run_dijkstra_pathfinder(graph, 0, 4, path_nodes, &path_len);
-
     int display_attack_time = (attack_time >= INF / 2) ? 999 : attack_time;
 
-    int identity_exp = 85, financial_exp = 95, cloud_exp = 70;
+    // Calculate domain exposure scores based on toggles
+    int identity_exp = 85;
+    int financial_exp = 95;
+    int cloud_exp = 70;
+
     if (f_notifs) { identity_exp -= 25; financial_exp -= 30; }
     if (f_applock) { financial_exp -= 30; cloud_exp -= 35; }
     if (f_simpin) { identity_exp -= 20; financial_exp -= 25; }
     if (f_fde) { identity_exp -= 20; cloud_exp -= 20; }
-    
-    // Remote Find/Wipe drops risk to minimal lockdown level immediately
     if (f_wipe) { identity_exp = 10; financial_exp = 10; cloud_exp = 10; }
 
     if (identity_exp < 5) identity_exp = 5;
@@ -66,7 +65,7 @@ int main(int argc, char *argv[]) {
 
     if (financial_exp > 20) insert_risk_item(risk_heap, "Bank OTP & UPI Apps", financial_exp, "Financial");
     if (identity_exp > 20) insert_risk_item(risk_heap, "Identity Documents", identity_exp, "Identity");
-    if (cloud_exp > 20) insert_risk_item(risk_heap, "Email & Cloud Storage Sessions", cloud_exp, "Work/Cloud");
+    if (cloud_exp > 20) insert_risk_item(risk_heap, "Email & Cloud Sessions", cloud_exp, "Work/Cloud");
 
     printf("{\n");
     printf("  \"exposure_score\": %d,\n", overall_risk);
@@ -78,7 +77,7 @@ int main(int argc, char *argv[]) {
     printf("  },\n");
     printf("  \"attack_path\": [");
     if (display_attack_time == 999 || f_wipe) {
-        printf("\"Remote Find/Wipe Triggered: Device Erased & Attack Interrupted\"");
+        printf("\"Security Control Active: Device Protection Enabled & Path Blocked\"");
     } else {
         for (int i = 0; i < path_len; i++) {
             printf("\"Step %d: %s\"%s", i + 1, graph->nodes[path_nodes[i]].label, (i < path_len - 1) ? ", " : "");
