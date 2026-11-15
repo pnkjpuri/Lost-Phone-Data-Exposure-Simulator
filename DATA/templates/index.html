@@ -1,25 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhoneExposure Lab — Lost Phone Exposure Simulator</title>
+    <title>PhoneShield — Lost Phone Exposure Simulator</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            corePlugins: {
+                preflight: false
+            }
+        }
+    </script>
     <style>
-        body { background-color: #0b0d10; color: #f4f6f8; font-family: 'Segoe UI', system-ui, sans-serif; }
+        :root {
+            --bg-primary: #070B14;
+            --bg-surface: #0D1322;
+            --bg-elevated: #131B2E;
+            --border-subtle: #1E293B;
+            --accent-cyan: #38bdf8;
+            --accent-blue: #3b82f6;
+            --accent-red: #f43f5e;
+            --accent-amber: #f59e0b;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body { 
+            background-color: var(--bg-primary); 
+            color: var(--text-main); 
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; 
+        }
         
         .card-dark { 
-            background-color: #171b21 !important; 
-            border: 1px solid #2a3039 !important; 
-            border-radius: 14px; 
+            background-color: var(--bg-surface) !important; 
+            border: 1px solid var(--border-subtle) !important; 
+            border-radius: 16px; 
             padding: 20px 24px !important;
-            color: #f4f6f8 !important; 
+            color: var(--text-main) !important; 
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
         }
+
         .card-header-custom { 
             font-weight: 700; 
-            color: #55a7ff !important; 
-            font-size: 1.05rem; 
+            color: var(--accent-cyan) !important; 
+            font-size: 1.02rem; 
             display: flex; 
             align-items: center; 
             gap: 8px; 
@@ -34,56 +64,100 @@
             cursor: pointer;
         }
 
+        /* ================= ANIMATED SLIDING PILL NAVBAR ================= */
         .tab-bar-container {
-            background: #111419;
-            border: 1px solid #2a3039;
+            position: relative;
+            background: #0D1322;
+            border: 1px solid var(--border-subtle);
             border-radius: 50px;
             padding: 6px;
             display: inline-flex;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 6px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         }
+
+        .tab-slider-pill {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            height: calc(100% - 12px);
+            background: #ffffff;
+            border-radius: 30px;
+            box-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
+            transition: transform 0.38s cubic-bezier(0.34, 1.45, 0.64, 1),
+                        width 0.38s cubic-bezier(0.34, 1.45, 0.64, 1),
+                        top 0.38s cubic-bezier(0.34, 1.45, 0.64, 1),
+                        height 0.38s cubic-bezier(0.34, 1.45, 0.64, 1);
+            z-index: 1;
+            pointer-events: none;
+        }
+
         .nav-tab-btn {
-            background: transparent;
+            position: relative;
+            z-index: 2;
+            background: transparent !important;
             border: none;
-            color: #a9b1bc !important;
-            padding: 8px 24px;
+            color: var(--text-muted) !important;
+            padding: 8px 22px;
             border-radius: 30px;
             font-weight: 600;
             font-size: 0.88rem;
-            transition: all 0.25s ease;
+            transition: color 0.25s ease, transform 0.15s ease;
+            cursor: pointer;
+        }
+        .nav-tab-btn:hover { 
+            color: #ffffff !important; 
+        }
+        .nav-tab-btn:active {
+            transform: scale(0.96);
         }
         .nav-tab-btn.active {
-            background: #ffffff !important;
-            color: #0d1117 !important;
-            box-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
+            color: #070B14 !important;
+            font-weight: 700;
+        }
+
+        /* Tab Content Smooth Transition */
+        .tab-content-view {
+            animation: tabFadeSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes tabFadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Virtual Smartphone Frame */
         .phone-frame {
             width: 320px;
             height: 640px;
-            background: #171b21;
-            border: 10px solid #2a3039;
+            background: #131B2E;
+            border: 10px solid #1E293B;
             border-radius: 40px;
             margin: 0 auto;
             position: relative;
-            box-shadow: 0 0 35px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 0 35px rgba(0, 0, 0, 0.75);
             overflow: hidden;
         }
         .phone-screen {
             height: 100%;
-            background: linear-gradient(180deg, #1f252d 0%, #0b0d10 100%);
+            background: linear-gradient(180deg, #131B2E 0%, #070B14 100%);
             padding: 14px;
             display: flex;
             flex-direction: column;
             position: relative;
         }
 
-        /* Remote Wipe Overlay */
         .wipe-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(11, 13, 16, 0.96);
+            background: rgba(7, 11, 20, 0.96);
             z-index: 20;
             display: none;
             flex-direction: column;
@@ -95,8 +169,8 @@
 
         /* Dynamic Security Meter */
         .meter-box {
-            background: #20252d;
-            border: 1px solid #2a3039;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
             border-radius: 12px;
             padding: 20px;
         }
@@ -108,10 +182,10 @@
         }
         .meter-track {
             height: 14px;
-            background-color: #111419;
+            background-color: #070B14;
             border-radius: 999px;
             overflow: hidden;
-            border: 1px solid #2a3039;
+            border: 1px solid var(--border-subtle);
             margin: 14px 0 8px 0;
         }
         .meter-fill {
@@ -121,7 +195,7 @@
         }
 
         .risk-factors-heading {
-            color: #8b949e !important;
+            color: var(--text-muted) !important;
             font-weight: 700 !important;
             font-size: 0.78rem !important;
             letter-spacing: 0.5px;
@@ -130,8 +204,8 @@
         }
 
         .risk-factor-tag {
-            background: #20252d !important;
-            border: 1px solid #2a3039 !important;
+            background: var(--bg-elevated) !important;
+            border: 1px solid var(--border-subtle) !important;
             padding: 10px 12px;
             border-radius: 8px;
             font-size: 0.82rem;
@@ -141,8 +215,8 @@
             justify-content: space-between;
             font-weight: 600;
         }
-        .risk-dot { width: 9px; height: 9px; border-radius: 50%; background: #35c782; transition: all 0.3s ease; }
-        .risk-dot.active { background: #f0525b; box-shadow: 0 0 8px #f0525b; }
+        .risk-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-green); transition: all 0.3s ease; }
+        .risk-dot.active { background: var(--accent-red); box-shadow: 0 0 8px var(--accent-red); }
 
         .app-wrapper { position: relative; display: inline-block; }
         .app-icon {
@@ -162,8 +236,8 @@
             position: absolute;
             top: -5px;
             right: -5px;
-            background: #35c782;
-            color: #0b0d10;
+            background: var(--accent-green);
+            color: #070B14;
             border-radius: 50%;
             width: 20px;
             height: 20px;
@@ -172,13 +246,13 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            border: 2px solid #171b21;
+            border: 2px solid #131B2E;
         }
 
         .path-step { 
-            background: #20252d !important; 
-            border: 1px solid #2a3039 !important;
-            border-left: 5px solid #f0525b !important; 
+            background: var(--bg-elevated) !important; 
+            border: 1px solid var(--border-subtle) !important;
+            border-left: 5px solid var(--accent-red) !important; 
             padding: 12px 14px; 
             margin-bottom: 10px; 
             border-radius: 8px; 
@@ -190,30 +264,209 @@
             gap: 10px;
         }
         .path-step.blocked {
-            border-left-color: #35c782 !important;
-            color: #35c782 !important;
+            border-left-color: var(--accent-green) !important;
+            color: var(--accent-green) !important;
         }
 
+        /* High-Contrast Emergency Response Checklist */
         .emergency-card {
-            background-color: #171b21 !important;
-            border: 1px solid #f0525b !important;
-            border-radius: 14px;
+            background-color: var(--bg-surface) !important;
+            border: 1px solid var(--accent-red) !important;
+            border-radius: 16px;
             padding: 20px 24px !important;
         }
         .action-step-card {
-            background: #20252d !important;
-            border: 1px solid #2a3039 !important;
+            background: var(--bg-elevated) !important;
+            border: 1px solid #293548 !important;
             border-radius: 10px;
             padding: 16px;
             height: 100%;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+        }
+        .action-step-card:hover {
+            border-color: #475569 !important;
+            transform: translateY(-2px);
+        }
+        .checklist-desc {
+            color: #cbd5e1 !important;
+            font-size: 0.85rem;
+            line-height: 1.55;
+            display: block;
+        }
+        .checklist-desc strong {
+            color: #ffffff !important;
+            font-weight: 700;
+        }
+
+        /* Glowing Arrows for Global Reports Dijkstra Flow */
+        .glow-arrow-cyan {
+            filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.75));
+        }
+        .glow-arrow-amber {
+            filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.75));
+        }
+        .glow-arrow-red {
+            filter: drop-shadow(0 0 6px rgba(244, 63, 94, 0.75));
+        }
+        .glow-arrow-emerald {
+            filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.75));
+        }
+        @media print {
+            body { background-color: #070B14 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+        }
+
+        /* ================= SOC THREAT FEED STYLES ================= */
+        .soc-posture-bar {
+            background: linear-gradient(90deg, #0D1322 0%, #131B2E 100%);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 14px 20px;
+        }
+        .posture-metric-pill {
+            background: #070B14;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .soc-kpi-card {
+            background: linear-gradient(145deg, #0D1322 0%, #090E1A 100%);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 16px 18px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+            height: 100%;
+        }
+        .soc-kpi-card:hover {
+            transform: translateY(-2px);
+            border-color: #334155;
+        }
+        .soc-kpi-accent {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+        .soc-kpi-label {
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+        .soc-kpi-value {
+            font-size: 1.85rem;
+            font-weight: 800;
+            margin: 4px 0;
+            line-height: 1.15;
+        }
+        .soc-kpi-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .live-pulse-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--accent-green);
+            display: inline-block;
+            box-shadow: 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulseGreen 1.8s infinite;
+        }
+        .live-pulse-dot.paused {
+            background-color: var(--accent-amber);
+            animation: none;
+        }
+        @keyframes pulseGreen {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 9px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .stream-container {
+            max-height: 360px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .stream-container::-webkit-scrollbar { width: 6px; }
+        .stream-container::-webkit-scrollbar-track { background: #070B14; border-radius: 4px; }
+        .stream-container::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; }
+
+        .stream-item {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-left-width: 4px;
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            animation: slideInEvent 0.3s ease-out;
+        }
+        @keyframes slideInEvent {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .sev-critical { border-left-color: #f43f5e; }
+        .sev-high { border-left-color: #f97316; }
+        .sev-medium { border-left-color: #f59e0b; }
+        .sev-low { border-left-color: #10b981; }
+
+        .badge-sev-critical { background-color: rgba(244, 63, 94, 0.18); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.4); }
+        .badge-sev-high { background-color: rgba(249, 115, 22, 0.18); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.4); }
+        .badge-sev-medium { background-color: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .badge-sev-low { background-color: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+        .chart-wrapper {
+            position: relative;
+            height: 220px;
+            width: 100%;
+        }
+
+        .soc-input {
+            background-color: #070B14 !important;
+            border: 1px solid var(--border-subtle) !important;
+            color: #ffffff !important;
+            font-size: 0.86rem;
+        }
+        .soc-input:focus {
+            border-color: var(--accent-cyan) !important;
+            box-shadow: 0 0 0 0.2rem rgba(56, 189, 248, 0.15) !important;
+        }
+        .soc-table th {
+            background-color: #070B14 !important;
+            color: var(--accent-cyan) !important;
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-subtle) !important;
+            white-space: nowrap;
+        }
+        .soc-table td {
+            background-color: transparent !important;
+            color: var(--text-main) !important;
+            font-size: 0.84rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #1E293B !important;
+        }
+        .soc-table tbody tr:hover {
+            background-color: rgba(56, 189, 248, 0.05) !important;
         }
     </style>
 </head>
-<body class="p-3">
+<body class="p-3 bg-[#070B14] text-slate-100 antialiased">
 
-    <!-- Top Navigation Tabs -->
-    <div class="text-center my-3">
-        <div class="tab-bar-container">
+    <!-- Top Centered Pill Navbar with Animated Sliding Indicator -->
+    <div class="text-center my-3 no-print">
+        <div class="tab-bar-container" id="mainTabBar">
+            <div class="tab-slider-pill" id="tabSliderPill"></div>
             <button class="nav-tab-btn active" onclick="switchTab(this, 'dashboardTab')">Dashboard</button>
             <button class="nav-tab-btn" onclick="switchTab(this, 'assessmentsTab')">Assessments</button>
             <button class="nav-tab-btn" onclick="switchTab(this, 'reportsTab')">Global Reports</button>
@@ -222,14 +475,14 @@
         </div>
     </div>
 
-    <div class="container-fluid px-4 mt-3">
+    <div class="container-fluid px-lg-4 px-2 mt-3">
         
         <!-- DASHBOARD TAB -->
         <div id="dashboardTab" class="tab-content-view">
             
             <!-- Security Controls Configuration -->
             <div class="card-dark mb-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                     <span class="card-header-custom">
                         <i class="bi bi-sliders text-info"></i> Security Controls Configuration
                     </span>
@@ -240,31 +493,31 @@
                 <div class="row text-light g-3 align-items-center">
                     <div class="col-xl-2 col-md-4 col-sm-6">
                         <div class="form-check form-switch d-flex align-items-center">
-                            <input class="form-check-input ms-0" type="checkbox" id="toggleNotifs" onchange="updateSimulation()">
+                            <input class="form-check-input ms-0" type="checkbox" id="toggleNotifs" onchange="handleControlToggle('hide_notifs', 'Hide Lockscreen Previews')">
                             <label class="form-check-label" for="toggleNotifs">Hide Lockscreen Previews</label>
                         </div>
                     </div>
                     <div class="col-xl-2 col-md-4 col-sm-6">
                         <div class="form-check form-switch d-flex align-items-center">
-                            <input class="form-check-input ms-0" type="checkbox" id="toggleAppLock" onchange="updateSimulation()">
+                            <input class="form-check-input ms-0" type="checkbox" id="toggleAppLock" onchange="handleControlToggle('app_lock', 'Biometric App Lock')">
                             <label class="form-check-label" for="toggleAppLock">Biometric App Lock</label>
                         </div>
                     </div>
                     <div class="col-xl-2 col-md-4 col-sm-6">
                         <div class="form-check form-switch d-flex align-items-center">
-                            <input class="form-check-input ms-0" type="checkbox" id="toggleFDE" onchange="updateSimulation()">
+                            <input class="form-check-input ms-0" type="checkbox" id="toggleFDE" onchange="handleControlToggle('enable_fde', 'Full Disk Encryption')">
                             <label class="form-check-label" for="toggleFDE">Full Disk Encryption</label>
                         </div>
                     </div>
                     <div class="col-xl-2 col-md-4 col-sm-6">
                         <div class="form-check form-switch d-flex align-items-center">
-                            <input class="form-check-input ms-0" type="checkbox" id="toggleSIM" onchange="updateSimulation()">
+                            <input class="form-check-input ms-0" type="checkbox" id="toggleSIM" onchange="handleControlToggle('sim_pin', 'SIM Lock PIN')">
                             <label class="form-check-label" for="toggleSIM">SIM Lock PIN</label>
                         </div>
                     </div>
                     <div class="col-xl-2 col-md-4 col-sm-6">
                         <div class="form-check form-switch d-flex align-items-center">
-                            <input class="form-check-input ms-0" type="checkbox" id="toggleWipe" onchange="updateSimulation()">
+                            <input class="form-check-input ms-0" type="checkbox" id="toggleWipe" onchange="handleControlToggle('remote_wipe', 'Remote Find/Wipe')">
                             <label class="form-check-label" for="toggleWipe">Remote Find/Wipe</label>
                         </div>
                     </div>
@@ -276,15 +529,13 @@
                 <div class="col-lg-4 mb-4">
                     <div class="phone-frame">
                         <div class="phone-screen">
-                            <!-- Remote Wipe Overlay -->
                             <div id="wipeOverlay" class="wipe-overlay">
                                 <i class="bi bi-shield-lock-fill text-success display-3 mb-3"></i>
-                                <h5 class="fw-bold text-white">DEVICE LOCKED & WIPED</h5>
-                                <p class="small text-secondary mb-3">Remote erase command executed. Local storage keys purged and physical access neutralized.</p>
+                                <h5 class="fw-bold text-white">DEVICE LOCKED &amp; WIPED</h5>
+                                <p class="small text-slate-300 mb-3">Remote erase command executed. Local storage keys purged and physical access neutralized.</p>
                                 <span class="badge bg-success">FIND MY DEVICE ACTIVE</span>
                             </div>
 
-                            <!-- Status Bar -->
                             <div class="d-flex justify-content-between align-items-center text-light mb-2 px-1 fw-bold" style="font-size: 0.8rem;">
                                 <span>09:41</span>
                                 <div class="d-flex align-items-center gap-2">
@@ -294,7 +545,6 @@
                                 </div>
                             </div>
 
-                            <!-- Lockscreen Notification Area -->
                             <div id="notifArea" class="mt-2">
                                 <div id="notifExposed" class="p-2 mb-2 rounded bg-dark border border-danger text-light small">
                                     <strong class="text-warning"><i class="bi bi-chat-dots"></i> Bank SMS OTP</strong>
@@ -302,22 +552,20 @@
                                 </div>
                                 <div id="notifHidden" class="p-2 mb-2 rounded bg-dark border border-success text-light small d-none">
                                     <strong class="text-success"><i class="bi bi-eye-slash"></i> Messages</strong>
-                                    <div class="text-secondary">Notification content hidden while locked.</div>
+                                    <div class="text-slate-300">Notification content hidden while locked.</div>
                                 </div>
                             </div>
 
-                            <!-- Hardware Storage Indicator -->
                             <div class="mt-auto mb-3 p-2 rounded bg-dark border border-secondary text-center" style="font-size: 0.75rem;">
                                 <span id="storageStatusText" class="text-danger fw-bold">
                                     <i class="bi bi-usb-symbol"></i> USB / ADB Storage Extraction: VULNERABLE
                                 </span>
                             </div>
 
-                            <!-- Bottom App Dock -->
                             <div class="row text-center g-2 mb-2">
                                 <div class="col-3">
                                     <div class="app-wrapper">
-                                        <div class="app-icon bg-warning text-dark mx-auto" onclick="handleAppClick('Notes App', 'Stored ATM PINs & Passwords Exposed')">
+                                        <div class="app-icon bg-warning text-dark mx-auto" onclick="handleAppClick('Notes App', 'Stored ATM PINs & Passwords Access Attempt', 'Application Layer', 'app_lock', 'HIGH')">
                                             <i class="bi bi-journal-text"></i>
                                         </div>
                                         <span class="app-lock-badge"><i class="bi bi-lock-fill"></i></span>
@@ -326,7 +574,7 @@
                                 </div>
                                 <div class="col-3">
                                     <div class="app-wrapper">
-                                        <div class="app-icon bg-success text-white mx-auto" onclick="handleAppClick('Photos App', 'Passport & ID Scans Exposed')">
+                                        <div class="app-icon bg-success text-white mx-auto" onclick="handleAppClick('Photos App', 'Passport & ID Scans Extraction Attempt', 'Storage/USB', 'app_lock', 'HIGH')">
                                             <i class="bi bi-image"></i>
                                         </div>
                                         <span class="app-lock-badge"><i class="bi bi-lock-fill"></i></span>
@@ -335,7 +583,7 @@
                                 </div>
                                 <div class="col-3">
                                     <div class="app-wrapper">
-                                        <div class="app-icon bg-danger text-white mx-auto" onclick="handleAppClick('Banking App', 'Active UPI Session Hijacked')">
+                                        <div class="app-icon bg-danger text-white mx-auto" onclick="handleAppClick('Banking App', 'Active UPI Session Hijack Attempt', 'Application Layer', 'app_lock', 'CRITICAL')">
                                             <i class="bi bi-bank"></i>
                                         </div>
                                         <span class="app-lock-badge"><i class="bi bi-lock-fill"></i></span>
@@ -344,7 +592,7 @@
                                 </div>
                                 <div class="col-3">
                                     <div class="app-wrapper">
-                                        <div class="app-icon bg-info text-white mx-auto" onclick="handleAppClick('Mail App', 'Primary OAuth Reset Token Leaked')">
+                                        <div class="app-icon bg-info text-white mx-auto" onclick="handleAppClick('Mail App', 'Primary OAuth Reset Token Harvest', 'Cloud/OAuth', 'app_lock', 'CRITICAL')">
                                             <i class="bi bi-envelope"></i>
                                         </div>
                                         <span class="app-lock-badge"><i class="bi bi-lock-fill"></i></span>
@@ -368,7 +616,7 @@
                                     <div class="meter-track">
                                         <div id="riskMeterFill" class="meter-fill bg-danger" style="width: 83%;"></div>
                                     </div>
-                                    <div class="d-flex justify-content-between text-secondary small mb-2">
+                                    <div class="d-flex justify-content-between text-slate-300 small mb-2">
                                         <span>0% (Safe)</span>
                                         <span>50%</span>
                                         <span>100% (Critical)</span>
@@ -433,29 +681,29 @@
                 </div>
             </div>
 
-            <!-- Emergency Response Checklist -->
+            <!-- High-Contrast Emergency Response Checklist -->
             <div class="emergency-card mt-2 mb-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                     <span class="fw-bold text-danger fs-5"><i class="bi bi-exclamation-triangle-fill"></i> Localized Emergency Response Checklist</span>
                     <span class="badge bg-danger">Immediate Actions</span>
                 </div>
                 <div class="row g-3">
                     <div class="col-md-4">
                         <div class="action-step-card">
-                            <div class="fw-bold text-light mb-2"><i class="bi bi-crosshair text-info me-2"></i> 1. Remote Device Lock & Erase</div>
-                            <small class="text-muted">Log into <strong>Google Find My Device</strong> or <strong>Apple Find My</strong> immediately from a secondary browser to issue a full remote wipe command.</small>
+                            <div class="fw-bold text-white mb-2 fs-6"><i class="bi bi-crosshair text-info me-2"></i> 1. Remote Device Lock &amp; Erase</div>
+                            <p class="checklist-desc mb-0">Log into <strong>Google Find My Device</strong> or <strong>Apple Find My</strong> immediately from a secondary browser to issue a full remote wipe command.</p>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="action-step-card">
-                            <div class="fw-bold text-light mb-2"><i class="bi bi-sim-fill text-warning me-2"></i> 2. Block SIM Card (Carrier Lock)</div>
-                            <small class="text-muted">Contact customer support (<strong>Jio: 198</strong>, <strong>Airtel: 121</strong>, <strong>Vi: 198</strong>) to suspend your SIM and stop SMS OTP interception.</small>
+                            <div class="fw-bold text-white mb-2 fs-6"><i class="bi bi-sim-fill text-warning me-2"></i> 2. Block SIM Card (Carrier Lock)</div>
+                            <p class="checklist-desc mb-0">Contact customer support (<strong>Jio: 198</strong>, <strong>Airtel: 121</strong>, <strong>Vi: 198</strong>) to suspend your SIM and stop SMS OTP interception.</p>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="action-step-card">
-                            <div class="fw-bold text-light mb-2"><i class="bi bi-phone-vibrate text-danger me-2"></i> 3. Blacklist IMEI on CEIR Portal</div>
-                            <small class="text-muted">File a lost report on the official Indian Government <strong>CEIR (Sanchar Saathi)</strong> portal using your IMEI number to block physical handset access across all networks.</small>
+                            <div class="fw-bold text-white mb-2 fs-6"><i class="bi bi-phone-vibrate text-danger me-2"></i> 3. Blacklist IMEI on CEIR Portal</div>
+                            <p class="checklist-desc mb-0">File a lost report on the official Indian Government <strong>CEIR (Sanchar Saathi)</strong> portal using your IMEI number to block physical handset access across all networks.</p>
                         </div>
                     </div>
                 </div>
@@ -466,7 +714,7 @@
         <div id="assessmentsTab" class="tab-content-view d-none">
             <div class="card-dark p-4">
                 <h4 class="text-info fw-bold mb-3"><i class="bi bi-clipboard-check"></i> Security Posture Assessment</h4>
-                <p class="text-muted">Real-time verification of security controls compiled by the ANSI C Hash Table engine.</p>
+                <p class="text-slate-300">Real-time verification of security controls compiled by the ANSI C Hash Table engine.</p>
                 <div class="table-responsive">
                     <table class="table table-dark table-striped">
                         <thead>
@@ -483,46 +731,502 @@
             </div>
         </div>
 
-        <!-- GLOBAL REPORTS TAB -->
+        <!-- ================= DYNAMIC GLOBAL REPORTS TAB ================= -->
         <div id="reportsTab" class="tab-content-view d-none">
-            <div class="card-dark p-4">
-                <h4 class="text-primary fw-bold mb-3"><i class="bi bi-globe"></i> Domain Exposure Reports</h4>
-                <p class="text-muted">Categorical breakdown of potential data exposure across critical vectors.</p>
-                <div class="row g-4 mt-1">
-                    <div class="col-md-4">
-                        <div class="p-3 bg-dark border border-secondary rounded">
-                            <h6 class="text-warning fw-bold"><i class="bi bi-person-badge me-2"></i> Identity Domain</h6>
-                            <div class="progress my-2"><div id="reportBarIdentity" class="progress-bar bg-warning" style="width: 85%">85%</div></div>
-                            <small class="text-muted">National IDs, Driver's License scans, Passport photos.</small>
+            <section class="max-w-7xl mx-auto rounded-2xl bg-[#0D1322] border border-[#1E293B] p-6 sm:p-8 shadow-2xl shadow-black/60 space-y-6">
+
+                <!-- 1. Header Row -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#1E293B]">
+                    <div>
+                        <div class="flex items-center gap-2.5">
+                            <svg class="w-6 h-6 text-sky-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+                            </svg>
+                            <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-sky-400 m-0">
+                                Domain Exposure Reports
+                            </h1>
+                        </div>
+                        <p class="mt-1 mb-0 text-sm text-slate-300">
+                            Live categorical breakdown of potential data exposure synchronized with active security controls.
+                        </p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-3 no-print">
+                        <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium text-slate-200 bg-[#131B2E] border border-[#1E293B] hover:border-slate-500 hover:bg-slate-800 transition-all cursor-pointer">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            Export PDF
+                        </button>
+                        <button type="button" onclick="downloadReportJSON()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-white bg-sky-600 hover:bg-sky-500 border border-sky-400/30 shadow-lg shadow-sky-950/50 transition-all cursor-pointer">
+                            <svg class="w-4 h-4 text-sky-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download JSON
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Top Row: 3-Column Grid (Dynamic Domain Cards) -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+                    <!-- Card 1: Identity Domain -->
+                    <article class="rounded-xl bg-[#131B2E] border border-[#1E293B] p-5 flex flex-col justify-between hover:border-amber-500/40 transition-colors">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 inline-flex">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                                        </svg>
+                                    </span>
+                                    <h2 class="text-base font-bold text-amber-400 m-0">Identity Domain</h2>
+                                </div>
+                                <span id="reportBadgeIdentity" class="px-2.5 py-0.5 rounded-md text-[11px] font-bold tracking-wider uppercase bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                                    HIGH RISK
+                                </span>
+                            </div>
+
+                            <!-- Dark Slate Progress Bar Track (#1E293B) -->
+                            <div class="w-full h-5 rounded-full bg-[#1E293B] p-0.5 overflow-hidden border border-slate-700/60">
+                                <div id="reportBarIdentity" class="h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 flex items-center justify-center text-[11px] font-extrabold text-slate-950 transition-all duration-500" style="width: 85%;">
+                                    85%
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Asset Pills -->
+                        <div class="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-[#1E293B]">
+                            <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-[#0D1322] text-slate-200 border border-[#1E293B]">Primary Email</span>
+                            <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-[#0D1322] text-slate-200 border border-[#1E293B]">SMS 2FA</span>
+                            <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-[#0D1322] text-slate-200 border border-[#1E293B]">Saved Passwords</span>
+                            <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-[#0D1322] text-slate-200 border border-[#1E293B]">ID Scans</span>
+                        </div>
+                    </article>
+
+                    <!-- Card 2: Financial Domain -->
+                    <article class="rounded-xl bg-[#131B2E] border border-[#1E293B] p-5 flex flex-col justify-between hover:border-rose-500/40 transition-colors">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="p-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 inline-flex">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11m16-11v11M8 14v3m4-3v3m4-3v3" />
+                                        </svg>
+                                    </span>
+                                    <h2 class="text-base font-bold text-rose-400 m-0">Financial Domain</h2>
+                                </div>
+                                <span id="reportBadgeFinancial" class="px-2.5 py-0.5 rounded-md text-[11px] font-bold tracking-wider uppercase bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                                    CRITICAL
+                                </span>
+                            </div>
+
+                            <!-- Dark Slate Progress Bar Track (#1E293B) -->
+                            <div class="w-full h-5 rounded-full bg-[#1E293B] p-0.5 overflow-hidden border border-slate-700/60">
+                                <div id="reportBarFinancial" class="h-full rounded-full bg-gradient-to-r from-rose-600 to-red-500 flex items-center justify-center text-[11px] font-extrabold text-white transition-all duration-500" style="width: 95%;">
+                                    95%
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Asset Pills -->
+                        <div class="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-[#1E293B]">
+                            <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-[#0D1322] text-slate-200 border border-[#1E293B]">UPI Apps</span>
+                            <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-[#0D1322] text-slate-200 border border-[#1E293B]">Banking Sessions</span>
+                            <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-[#0D1322] text-slate-200 border border-[#1E293B]">Saved Cards</span>
+                            <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-[#0D1322] text-slate-200 border border-[#1E293B]">Crypto Wallet</span>
+                        </div>
+                    </article>
+
+                    <!-- Card 3: Work & Cloud Storage -->
+                    <article class="rounded-xl bg-[#131B2E] border border-[#1E293B] p-5 flex flex-col justify-between hover:border-sky-500/40 transition-colors">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="p-1.5 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400 inline-flex">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                                        </svg>
+                                    </span>
+                                    <h2 class="text-base font-bold text-sky-400 m-0">Work &amp; Cloud Storage</h2>
+                                </div>
+                                <span id="reportBadgeCloud" class="px-2.5 py-0.5 rounded-md text-[11px] font-bold tracking-wider uppercase bg-sky-500/15 text-sky-300 border border-sky-500/30">
+                                    MODERATE
+                                </span>
+                            </div>
+
+                            <!-- Dark Slate Progress Bar Track (#1E293B) -->
+                            <div class="w-full h-5 rounded-full bg-[#1E293B] p-0.5 overflow-hidden border border-slate-700/60">
+                                <div id="reportBarCloud" class="h-full rounded-full bg-gradient-to-r from-cyan-500 to-sky-400 flex items-center justify-center text-[11px] font-extrabold text-slate-950 transition-all duration-500" style="width: 70%;">
+                                    70%
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Asset Pills -->
+                        <div class="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-[#1E293B]">
+                            <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-[#0D1322] text-slate-200 border border-[#1E293B]">Google Drive</span>
+                            <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-[#0D1322] text-slate-200 border border-[#1E293B]">Corporate Slack</span>
+                            <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-[#0D1322] text-slate-200 border border-[#1E293B]">GitHub Tokens</span>
+                        </div>
+                    </article>
+                </div>
+
+                <!-- 3. Middle Row: 60% / 40% Two-Column Split -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+                    <!-- Left Card (60% -> 7 of 12 cols): Shortest Compromise Path (Dijkstra) -->
+                    <div class="lg:col-span-7 rounded-xl bg-[#131B2E] border border-[#1E293B] p-5 sm:p-6 flex flex-col justify-between">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                <h2 class="text-base sm:text-lg font-bold text-white m-0">Shortest Compromise Path (Dijkstra)</h2>
+                            </div>
+                            <span id="reportDijkstraTimeBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/40 shadow-sm">
+                                Est. Compromise: &lt; 4 mins
+                            </span>
+                        </div>
+
+                        <!-- Dynamic Horizontal Node-to-Node Attack Flow Diagram -->
+                        <div class="my-auto py-4 overflow-x-auto">
+                            <div id="reportDijkstraFlowContainer" class="flex items-center justify-between min-w-[540px] gap-2 px-1">
+                                <!-- Rendered dynamically by updateGlobalReportsUI() -->
+                            </div>
+                        </div>
+
+                        <div class="mt-3 pt-3 border-t border-[#1E293B] flex items-center justify-between text-xs text-slate-300">
+                            <span>Graph Algorithm: <strong class="text-slate-100 font-mono">Dijkstra Min-Weight Traversal</strong></span>
+                            <span id="reportDijkstraStatusSummary">4 Hops / 3 Attack Vectors</span>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="p-3 bg-dark border border-secondary rounded">
-                            <h6 class="text-danger fw-bold"><i class="bi bi-bank me-2"></i> Financial Domain</h6>
-                            <div class="progress my-2"><div id="reportBarFinancial" class="progress-bar bg-danger" style="width: 95%">95%</div></div>
-                            <small class="text-muted">UPI apps, SMS 2FA codes, Plaintext ATM PINs in Notes.</small>
+
+                    <!-- Right Card (40% -> 5 of 12 cols): Dynamic Exposure by Attack Vector -->
+                    <div class="lg:col-span-5 rounded-xl bg-[#131B2E] border border-[#1E293B] p-5 sm:p-6 flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-base sm:text-lg font-bold text-white m-0">Exposure by Attack Vector</h2>
+                            <span id="reportVectorTotalLabel" class="text-xs font-mono text-slate-300">100% Share</span>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-center justify-center gap-6 my-auto">
+                            <!-- Chart.js Donut Canvas -->
+                            <div class="relative w-40 h-40 shrink-0">
+                                <canvas id="attackVectorChart"></canvas>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                    <span id="reportVectorCenterSub" class="text-xs text-slate-300">Active</span>
+                                    <span id="reportVectorCenterVal" class="text-lg font-extrabold text-white">4</span>
+                                </div>
+                            </div>
+
+                            <!-- Dynamic Right-Side Custom Legend -->
+                            <ul class="space-y-2.5 text-sm w-full sm:w-auto list-none p-0 m-0">
+                                <li class="flex items-center justify-between sm:justify-start gap-3">
+                                    <span class="flex items-center gap-2 text-slate-100 font-medium">
+                                        <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+                                        Session Tokens
+                                    </span>
+                                    <span id="legendSessionTokens" class="font-mono text-xs text-slate-300">38%</span>
+                                </li>
+                                <li class="flex items-center justify-between sm:justify-start gap-3">
+                                    <span class="flex items-center gap-2 text-slate-100 font-medium">
+                                        <span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span>
+                                        SMS Previews
+                                    </span>
+                                    <span id="legendSmsPreviews" class="font-mono text-xs text-slate-300">29%</span>
+                                </li>
+                                <li class="flex items-center justify-between sm:justify-start gap-3">
+                                    <span class="flex items-center gap-2 text-slate-100 font-medium">
+                                        <span class="w-3 h-3 rounded-full bg-sky-400 inline-block"></span>
+                                        Local Storage
+                                    </span>
+                                    <span id="legendLocalStorage" class="font-mono text-xs text-slate-300">21%</span>
+                                </li>
+                                <li class="flex items-center justify-between sm:justify-start gap-3">
+                                    <span class="flex items-center gap-2 text-slate-100 font-medium">
+                                        <span class="w-3 h-3 rounded-full bg-slate-500 inline-block"></span>
+                                        Weak Lock
+                                    </span>
+                                    <span id="legendWeakLock" class="font-mono text-xs text-slate-300">12%</span>
+                                </li>
+                            </ul>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="p-3 bg-dark border border-secondary rounded">
-                            <h6 class="text-info fw-bold"><i class="bi bi-cloud-check me-2"></i> Work & Cloud Storage</h6>
-                            <div class="progress my-2"><div id="reportBarCloud" class="progress-bar bg-info" style="width: 70%">70%</div></div>
-                            <small class="text-muted">Active OAuth sessions, primary email access tokens.</small>
+                </div>
+
+                <!-- 4. Bottom Row: Full-Width Card (Dynamic Top Exposed Assets Priority Queue) -->
+                <div class="rounded-xl bg-[#131B2E] border border-[#1E293B] overflow-hidden">
+                    <div class="px-5 py-4 border-b border-[#1E293B] flex items-center justify-between">
+                        <h2 class="text-base sm:text-lg font-bold text-white m-0">Top Exposed Assets (Priority Queue)</h2>
+                        <span id="reportQueueCountBadge" class="text-xs font-mono text-slate-300">Max-Heap Ranked</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-[#1E293B] bg-[#0D1322] text-xs font-semibold uppercase tracking-wider text-slate-300">
+                                    <th class="py-3 px-5">Asset</th>
+                                    <th class="py-3 px-5">Domain</th>
+                                    <th class="py-3 px-5">Risk Score</th>
+                                    <th class="py-3 px-5">Recommended Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportPriorityTableBody" class="divide-y divide-[#1E293B] text-sm">
+                                <!-- Rendered dynamically by updateGlobalReportsUI() -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+
+        <!-- ================= SOC THREAT FEED TAB ================= -->
+        <div id="threatFeedTab" class="tab-content-view d-none">
+            
+            <!-- SOC Top Header -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                    <h4 class="fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-shield-shaded text-info"></i> Security Operations Center (SOC) — Threat Intelligence &amp; Telemetry
+                    </h4>
+                    <small class="text-slate-300">
+                        <span class="badge bg-secondary text-light me-1">SIMULATED TELEMETRY</span>
+                        Separated Device Security Controls Posture &amp; Live Audit Telemetry Stream.
+                    </small>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-info" onclick="simulateAttackEvent()">
+                        <i class="bi bi-bug-fill"></i> Simulate Attack Probe
+                    </button>
+                    <button id="toggleMonitorBtn" class="btn btn-sm btn-outline-warning" onclick="toggleMonitoring()">
+                        <i class="bi bi-pause-circle-fill"></i> Pause Monitoring
+                    </button>
+                </div>
+            </div>
+
+            <!-- A. SECURITY CONTROLS CONFIGURATION POSTURE (SEPARATED FROM THREATS) -->
+            <div class="soc-posture-bar mb-3">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                    <span class="fw-bold text-info small text-uppercase" style="letter-spacing: 0.6px;">
+                        <i class="bi bi-sliders2 me-1"></i> Device Security Controls Posture (Configuration State)
+                    </span>
+                    <span id="lastConfigChangeText" class="text-slate-300 small font-monospace">Config State: Baseline Default</span>
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-3 col-6">
+                        <div class="posture-metric-pill">
+                            <span class="text-slate-300 small fw-semibold">Total Controls</span>
+                            <span id="postureTotalControls" class="fw-bold text-white">5</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="posture-metric-pill">
+                            <span class="text-slate-300 small fw-semibold">Enabled Controls</span>
+                            <span id="postureEnabledControls" class="fw-bold text-success">0</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="posture-metric-pill">
+                            <span class="text-slate-300 small fw-semibold">Disabled Controls</span>
+                            <span id="postureDisabledControls" class="fw-bold text-danger">5</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="posture-metric-pill">
+                            <span class="text-slate-300 small fw-semibold">Protection Coverage</span>
+                            <span id="postureCoveragePct" class="fw-bold text-info">0%</span>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- THREAT FEED TAB -->
-        <div id="threatFeedTab" class="tab-content-view d-none">
-            <div class="card-dark p-4">
-                <h4 class="text-warning fw-bold mb-3"><i class="bi bi-activity"></i> Live Intercept Stream</h4>
-                <p class="text-muted">Chronological event log capturing simulated access attempts on the device.</p>
-                <ul class="list-group list-group-flush" id="threatFeedList">
-                    <li class="list-group-item bg-transparent text-danger border-secondary"><i class="bi bi-circle-fill me-2 fs-6"></i> Physical Lockscreen access detected</li>
-                    <li class="list-group-item bg-transparent text-warning border-secondary"><i class="bi bi-circle-fill me-2 fs-6"></i> Lockscreen OTP preview intercepted</li>
-                </ul>
+            <!-- B. THREAT INTELLIGENCE KPI SUMMARY CARDS -->
+            <div class="row g-3 mb-4">
+                <div class="col-xl col-md-4 col-sm-6">
+                    <div class="soc-kpi-card">
+                        <div class="soc-kpi-accent bg-info"></div>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="soc-kpi-label">Total Threats Detected</div>
+                                <div id="kpiTotalThreats" class="soc-kpi-value text-info">5</div>
+                                <div class="soc-kpi-sub">Audit log events</div>
+                            </div>
+                            <i class="bi bi-radar fs-4 text-info opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl col-md-4 col-sm-6">
+                    <div class="soc-kpi-card">
+                        <div class="soc-kpi-accent bg-danger"></div>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="soc-kpi-label">Active Threats</div>
+                                <div id="kpiActiveThreats" class="soc-kpi-value text-danger">2</div>
+                                <div class="soc-kpi-sub">Unmitigated attacks</div>
+                            </div>
+                            <i class="bi bi-exclamation-octagon fs-4 text-danger opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl col-md-4 col-sm-6">
+                    <div class="soc-kpi-card">
+                        <div class="soc-kpi-accent bg-success"></div>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="soc-kpi-label">Blocked Attacks</div>
+                                <div id="kpiBlockedAttacks" class="soc-kpi-value text-success">2</div>
+                                <div class="soc-kpi-sub">Stopped by controls</div>
+                            </div>
+                            <i class="bi bi-shield-check fs-4 text-success opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl col-md-6 col-sm-6">
+                    <div class="soc-kpi-card">
+                        <div class="soc-kpi-accent bg-warning"></div>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="soc-kpi-label">Investigating / Resolved</div>
+                                <div id="kpiInvResolved" class="soc-kpi-value text-warning">1 / 0</div>
+                                <div class="soc-kpi-sub">Under review / Closed</div>
+                            </div>
+                            <i class="bi bi-search fs-4 text-warning opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl col-md-6 col-sm-12">
+                    <div class="soc-kpi-card">
+                        <div id="kpiStatusAccent" class="soc-kpi-accent bg-danger"></div>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="soc-kpi-label">Device Security Status</div>
+                                <div id="kpiDeviceStatus" class="soc-kpi-value text-danger" style="font-size: 1.4rem; padding-top: 6px;">AT RISK</div>
+                                <div id="kpiDeviceSub" class="soc-kpi-sub">Exposure Risk: 83%</div>
+                            </div>
+                            <i id="kpiStatusIcon" class="bi bi-phone-vibrate fs-4 text-danger opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIVE INTERCEPT STREAM + 4 VISUAL ANALYTICS CHARTS -->
+            <div class="row g-4 mb-4">
+                
+                <!-- Left Column: Live Intercept Stream -->
+                <div class="col-lg-5">
+                    <div class="card-dark h-100 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="card-header-custom">
+                                <i class="bi bi-broadcast text-info"></i> Live Intercept Stream
+                            </span>
+                            <span id="liveStatusBadge" class="badge bg-dark border border-success text-success d-flex align-items-center gap-2 px-2 py-1">
+                                <span id="livePulseDot" class="live-pulse-dot"></span>
+                                <span id="liveStatusText">LIVE MONITORING</span>
+                            </span>
+                        </div>
+                        <small class="text-slate-300 mb-3" style="font-size: 0.76rem;">
+                            Real-time telemetry stream showing attack probes and live status transitions (Active &rarr; Investigating &rarr; Blocked / Resolved).
+                        </small>
+                        <div id="socLiveStream" class="stream-container flex-grow-1"></div>
+                    </div>
+                </div>
+
+                <!-- Right Column: 4 Threat Analytics Charts -->
+                <div class="col-lg-7">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card-dark h-100">
+                                <div class="card-header-custom mb-2" style="font-size: 0.92rem;">
+                                    <i class="bi bi-pie-chart-fill text-warning"></i> Threat Distribution by Severity
+                                </div>
+                                <div class="chart-wrapper">
+                                    <canvas id="chartSeverity"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card-dark h-100">
+                                <div class="card-header-custom mb-2" style="font-size: 0.92rem;">
+                                    <i class="bi bi-graph-up text-danger"></i> Attack Activity Over Time
+                                </div>
+                                <div class="chart-wrapper">
+                                    <canvas id="chartTimeline"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card-dark h-100">
+                                <div class="card-header-custom mb-2" style="font-size: 0.92rem;">
+                                    <i class="bi bi-diagram-2-fill text-info"></i> Threat Source Distribution
+                                </div>
+                                <div class="chart-wrapper">
+                                    <canvas id="chartSource"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card-dark h-100">
+                                <div class="card-header-custom mb-2" style="font-size: 0.92rem;">
+                                    <i class="bi bi-bar-chart-fill text-success"></i> Incident Lifecycle Breakdown
+                                </div>
+                                <div class="chart-wrapper">
+                                    <canvas id="chartTrends"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEARCHABLE & FILTERABLE SECURITY EVENT TABLE -->
+            <div class="card-dark">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                    <div>
+                        <span class="card-header-custom">
+                            <i class="bi bi-table text-info"></i> Security Event Audit Log
+                        </span>
+                        <small class="text-slate-300">Real-time simulated attack events with live status transition controls.</small>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <div class="input-group input-group-sm" style="width: 230px;">
+                            <span class="input-group-text bg-dark border-secondary text-slate-300"><i class="bi bi-search"></i></span>
+                            <input type="text" id="socSearchInput" class="form-control soc-input" placeholder="Search ID, threat, source..." onkeyup="renderSocTable()">
+                        </div>
+                        <select id="socSeverityFilter" class="form-select form-select-sm soc-input" style="width: 145px;" onchange="renderSocTable()">
+                            <option value="ALL">All Severities</option>
+                            <option value="CRITICAL">Critical</option>
+                            <option value="HIGH">High</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="LOW">Low</option>
+                        </select>
+                        <select id="socStatusFilter" class="form-select form-select-sm soc-input" style="width: 155px;" onchange="renderSocTable()">
+                            <option value="ALL">All Statuses</option>
+                            <option value="Active">Active</option>
+                            <option value="Investigating">Investigating</option>
+                            <option value="Blocked">Blocked</option>
+                            <option value="Resolved">Resolved</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-dark soc-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Event ID</th>
+                                <th>Last Updated</th>
+                                <th>Threat Type</th>
+                                <th>Source Vector</th>
+                                <th>Severity</th>
+                                <th>Status</th>
+                                <th>Response / Transition</th>
+                            </tr>
+                        </thead>
+                        <tbody id="socEventTableBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -530,7 +1234,7 @@
         <div id="riskTab" class="tab-content-view d-none">
             <div class="card-dark p-4">
                 <h4 class="text-danger fw-bold mb-3"><i class="bi bi-diagram-3"></i> Priority Asset Ranking (Max-Heap)</h4>
-                <p class="text-muted">High-value assets ranked dynamically by risk score from the C Max-Heap engine.</p>
+                <p class="text-slate-300">High-value assets ranked dynamically by risk score from the C Max-Heap engine.</p>
                 <div class="table-responsive">
                     <table class="table table-dark table-striped">
                         <thead>
@@ -550,58 +1254,1105 @@
     </div>
 
     <script>
+        /* =====================================================================
+           CENTRALIZED SINGLE-SOURCE-OF-TRUTH APPLICATION STATE
+           All 5 Attack Vectors Mapped 1:1 to Device Security Controls
+        ===================================================================== */
+        const ATTACK_VECTORS = [
+            {
+                signatureKey: 'OTP_LOCKSCREEN_READ',
+                type: 'SMS 2FA OTP Lockscreen Interception',
+                source: 'Lockscreen',
+                baseSeverity: 'CRITICAL',
+                defendingControl: 'hide_notifs',
+                activeAction: 'Enable Hide Lockscreen Previews',
+                blockedAction: 'Blocked: Lockscreen Previews Hidden'
+            },
+            {
+                signatureKey: 'USB_ADB_EXTRACTION',
+                type: 'Unauthorized USB / ADB Partition Dump',
+                source: 'Storage/USB',
+                baseSeverity: 'HIGH',
+                defendingControl: 'enable_fde',
+                activeAction: 'Enable Full Disk Encryption',
+                blockedAction: 'Blocked: AES-256 FDE Active'
+            },
+            {
+                signatureKey: 'SIM_SWAP_HIJACK',
+                type: 'SIM Card Transfer & Carrier OTP Hijack',
+                source: 'Cellular SIM',
+                baseSeverity: 'HIGH',
+                defendingControl: 'sim_pin',
+                activeAction: 'Configure SIM Lock PIN',
+                blockedAction: 'Blocked: SIM PIN Verified'
+            },
+            {
+                signatureKey: 'BANKING_SESSION_HIJACK',
+                type: 'Direct UPI & Banking App Session Access',
+                source: 'Application Layer',
+                baseSeverity: 'CRITICAL',
+                defendingControl: 'app_lock',
+                activeAction: 'Enable Biometric App Lock',
+                blockedAction: 'Blocked: Biometric Prompt Enforced'
+            },
+            {
+                signatureKey: 'OAUTH_TOKEN_HARVEST',
+                type: 'Remote Device Access & Cloud OAuth Harvest',
+                source: 'Cloud/OAuth',
+                baseSeverity: 'MEDIUM',
+                defendingControl: 'remote_wipe',
+                activeAction: 'Activate Remote Find/Wipe',
+                blockedAction: 'Blocked: Remote Find/Wipe Active'
+            }
+        ];
+
+        const AppState = {
+            controls: {
+                hide_notifs: false,
+                app_lock: false,
+                enable_fde: false,
+                sim_pin: false,
+                remote_wipe: false
+            },
+            exposureScore: 83,
+            domainScores: {
+                identity: 85,
+                financial: 95,
+                cloud: 70
+            },
+            vectorPercentages: {
+                sessionTokens: 38,
+                smsPreviews: 29,
+                localStorage: 21,
+                weakLock: 12
+            },
+            priorityQueue: [],
+            isMonitoringActive: true,
+            telemetryTimer: null,
+            probeIndex: 0,
+            eventSequence: 1005,
+            threats: [],
+            charts: {}
+        };
+
+        function getFormattedTime(offsetSeconds = 0) {
+            const d = new Date(Date.now() + offsetSeconds * 1000);
+            return d.toTimeString().split(' ')[0];
+        }
+
+        function isControlProtecting(controlKey) {
+            if (AppState.controls.remote_wipe) return true;
+            return Boolean(AppState.controls[controlKey]);
+        }
+
+        function seedInitialThreats() {
+            AppState.threats = [
+                {
+                    id: 'EVT-1001',
+                    signatureKey: 'OTP_LOCKSCREEN_READ',
+                    timestamp: getFormattedTime(-140),
+                    type: 'SMS 2FA OTP Lockscreen Interception',
+                    source: 'Lockscreen',
+                    baseSeverity: 'CRITICAL',
+                    defendingControl: 'hide_notifs',
+                    activeAction: 'Enable Hide Lockscreen Previews',
+                    blockedAction: 'Blocked: Lockscreen Previews Hidden',
+                    severity: 'CRITICAL',
+                    status: 'Active',
+                    action: 'Enable Hide Lockscreen Previews',
+                    transitionNote: 'Detected: Lockscreen OTP Exposed'
+                },
+                {
+                    id: 'EVT-1002',
+                    signatureKey: 'USB_ADB_EXTRACTION',
+                    timestamp: getFormattedTime(-110),
+                    type: 'Unauthorized USB / ADB Partition Dump',
+                    source: 'Storage/USB',
+                    baseSeverity: 'HIGH',
+                    defendingControl: 'enable_fde',
+                    activeAction: 'Enable Full Disk Encryption',
+                    blockedAction: 'Blocked: AES-256 FDE Active',
+                    severity: 'HIGH',
+                    status: 'Active',
+                    action: 'Enable Full Disk Encryption',
+                    transitionNote: 'Detected: Unencrypted Storage Probe'
+                },
+                {
+                    id: 'EVT-1003',
+                    signatureKey: 'SIM_SWAP_HIJACK',
+                    timestamp: getFormattedTime(-80),
+                    type: 'SIM Card Transfer & Carrier OTP Hijack',
+                    source: 'Cellular SIM',
+                    baseSeverity: 'HIGH',
+                    defendingControl: 'sim_pin',
+                    activeAction: 'Configure SIM Lock PIN',
+                    blockedAction: 'Blocked: Carrier & SIM Lock Guard',
+                    severity: 'LOW',
+                    status: 'Blocked',
+                    action: 'Blocked: Carrier Network Anomaly Guard',
+                    transitionNote: 'Mitigated: Carrier SIM Transfer Rejected'
+                },
+                {
+                    id: 'EVT-1004',
+                    signatureKey: 'BANKING_SESSION_HIJACK',
+                    timestamp: getFormattedTime(-45),
+                    type: 'Direct UPI & Banking App Session Access',
+                    source: 'Application Layer',
+                    baseSeverity: 'CRITICAL',
+                    defendingControl: 'app_lock',
+                    activeAction: 'Enable Biometric App Lock',
+                    blockedAction: 'Blocked: Session Timeout Enforced',
+                    severity: 'LOW',
+                    status: 'Blocked',
+                    action: 'Blocked: UPI Idle Session Lock Enforced',
+                    transitionNote: 'Mitigated: Unauthorized UPI Token Rejected'
+                },
+                {
+                    id: 'EVT-1005',
+                    signatureKey: 'OAUTH_TOKEN_HARVEST',
+                    timestamp: getFormattedTime(-15),
+                    type: 'Remote Device Access & Cloud OAuth Harvest',
+                    source: 'Cloud/OAuth',
+                    baseSeverity: 'MEDIUM',
+                    defendingControl: 'remote_wipe',
+                    activeAction: 'Activate Remote Find/Wipe',
+                    blockedAction: 'Blocked: Remote Find/Wipe Active',
+                    severity: 'MEDIUM',
+                    status: 'Investigating',
+                    action: 'SOC Triage: Analyzing OAuth Refresh Token',
+                    transitionNote: 'In Review: Suspicious Cloud Token Request'
+                }
+            ];
+        }
+
+        /* =====================================================================
+           SLIDING PILL NAVBAR POSITIONING & TAB TRANSITION
+        ===================================================================== */
+        function positionTabPill(targetBtn) {
+            const pill = document.getElementById('tabSliderPill');
+            if (!pill || !targetBtn) return;
+
+            pill.style.width = `${targetBtn.offsetWidth}px`;
+            pill.style.height = `${targetBtn.offsetHeight}px`;
+            pill.style.transform = `translate(${targetBtn.offsetLeft - 6}px, ${targetBtn.offsetTop - 6}px)`;
+        }
+
         function switchTab(btn, tabId) {
             document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            document.querySelectorAll('.tab-content-view').forEach(view => view.classList.add('d-none'));
-            document.getElementById(tabId).classList.remove('d-none');
-        }
+            positionTabPill(btn);
 
-        function handleAppClick(title, detail) {
-            const appLock = document.getElementById('toggleAppLock').checked;
-            const feed = document.getElementById('threatFeedList');
-            const item = document.createElement('li');
+            document.querySelectorAll('.tab-content-view').forEach(view => {
+                view.classList.add('d-none');
+            });
 
-            if (appLock) {
-                item.className = 'list-group-item bg-transparent text-success border-secondary';
-                item.innerHTML = `<i class="bi bi-shield-check me-2"></i> <strong>${title} Blocked:</strong> Biometric authentication prevented unauthorized access.`;
-                feed.prepend(item);
-                alert(`[Biometric App Lock Active]\nAccess to ${title} was BLOCKED.`);
-            } else {
-                item.className = 'list-group-item bg-transparent text-danger border-secondary';
-                item.innerHTML = `<i class="bi bi-exclamation-circle-fill me-2"></i> <strong>${title} Compromised:</strong> ${detail}`;
-                feed.prepend(item);
-                alert(`[Simulation Intercept] ${title}:\n${detail}`);
+            const activeView = document.getElementById(tabId);
+            activeView.classList.remove('d-none');
+
+            // Re-trigger smooth fade+slide entrance animation
+            activeView.style.animation = 'none';
+            void activeView.offsetWidth;
+            activeView.style.animation = '';
+
+            if (tabId === 'threatFeedTab') {
+                syncAllViews();
+            }
+            if (tabId === 'reportsTab' && AppState.charts.attackVector) {
+                AppState.charts.attackVector.resize();
             }
         }
 
+        window.addEventListener('resize', () => {
+            const activeBtn = document.querySelector('.nav-tab-btn.active');
+            if (activeBtn) positionTabPill(activeBtn);
+        });
+
+        /* =====================================================================
+           GLOBAL REPORTS DONUT CHART, DYNAMIC UPDATES & JSON EXPORT
+        ===================================================================== */
+        function initGlobalReportChart() {
+            const canvas = document.getElementById('attackVectorChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            AppState.charts.attackVector = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Session Tokens', 'SMS Previews', 'Local Storage', 'Weak Lock'],
+                    datasets: [{
+                        data: [38, 29, 21, 12],
+                        backgroundColor: [
+                            '#F43F5E',
+                            '#FBBF24',
+                            '#38BDF8',
+                            '#64748B'
+                        ],
+                        borderColor: '#131B2E',
+                        borderWidth: 3,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '68%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#070B14',
+                            titleColor: '#F8FAFC',
+                            bodyColor: '#CBD5E1',
+                            borderColor: '#1E293B',
+                            borderWidth: 1,
+                            padding: 10,
+                            callbacks: {
+                                label: (context) => ` ${context.label}: ${context.parsed}%`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function getDomainSeverityStyle(pct) {
+            if (pct >= 80) {
+                return {
+                    label: 'CRITICAL',
+                    badgeClass: 'px-2.5 py-0.5 rounded-md text-[11px] font-bold tracking-wider uppercase bg-rose-500/15 text-rose-300 border border-rose-500/30',
+                    barClass: 'h-full rounded-full bg-gradient-to-r from-rose-600 to-red-500 flex items-center justify-center text-[11px] font-extrabold text-white transition-all duration-500'
+                };
+            } else if (pct >= 50) {
+                return {
+                    label: 'HIGH RISK',
+                    badgeClass: 'px-2.5 py-0.5 rounded-md text-[11px] font-bold tracking-wider uppercase bg-amber-500/15 text-amber-300 border border-amber-500/30',
+                    barClass: 'h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 flex items-center justify-center text-[11px] font-extrabold text-slate-950 transition-all duration-500'
+                };
+            } else if (pct >= 20) {
+                return {
+                    label: 'MODERATE',
+                    badgeClass: 'px-2.5 py-0.5 rounded-md text-[11px] font-bold tracking-wider uppercase bg-sky-500/15 text-sky-300 border border-sky-500/30',
+                    barClass: 'h-full rounded-full bg-gradient-to-r from-cyan-500 to-sky-400 flex items-center justify-center text-[11px] font-extrabold text-slate-950 transition-all duration-500'
+                };
+            } else {
+                return {
+                    label: 'SECURED',
+                    badgeClass: 'px-2.5 py-0.5 rounded-md text-[11px] font-bold tracking-wider uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
+                    barClass: 'h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 flex items-center justify-center text-[11px] font-extrabold text-slate-950 transition-all duration-500'
+                };
+            }
+        }
+
+        function updateGlobalReportsUI(apiData) {
+            const { hide_notifs, app_lock, enable_fde, sim_pin, remote_wipe } = AppState.controls;
+
+            // 1. Update Domain Cards dynamically
+            const idPct = apiData.domains ? apiData.domains.identity : 85;
+            const finPct = apiData.domains ? apiData.domains.financial : 95;
+            const cldPct = apiData.domains ? apiData.domains.cloud : 70;
+
+            AppState.domainScores = { identity: idPct, financial: finPct, cloud: cldPct };
+
+            const applyDomainCard = (barId, badgeId, pct) => {
+                const style = getDomainSeverityStyle(pct);
+                const barEl = document.getElementById(barId);
+                const badgeEl = document.getElementById(badgeId);
+                if (barEl) {
+                    barEl.style.width = `${Math.max(pct, 8)}%`;
+                    barEl.innerText = `${pct}%`;
+                    barEl.className = style.barClass;
+                }
+                if (badgeEl) {
+                    badgeEl.innerText = style.label;
+                    badgeEl.className = style.badgeClass;
+                }
+            };
+
+            applyDomainCard('reportBarIdentity', 'reportBadgeIdentity', idPct);
+            applyDomainCard('reportBarFinancial', 'reportBadgeFinancial', finPct);
+            applyDomainCard('reportBarCloud', 'reportBadgeCloud', cldPct);
+
+            // 2. Dynamic Exposure by Attack Vector (Donut Chart + Legend)
+            let rawTokens = remote_wipe ? 0 : (app_lock ? 6 : 38);
+            let rawSms = remote_wipe ? 0 : (hide_notifs ? 4 : (sim_pin ? 16 : 29));
+            let rawStorage = remote_wipe ? 0 : (enable_fde ? 3 : 21);
+            let rawLock = remote_wipe ? 0 : ((app_lock && hide_notifs) ? 2 : 12);
+
+            const rawSum = rawTokens + rawSms + rawStorage + rawLock;
+            let activeVectorsCount = 0;
+            if (rawTokens > 3) activeVectorsCount++;
+            if (rawSms > 3) activeVectorsCount++;
+            if (rawStorage > 3) activeVectorsCount++;
+            if (rawLock > 3) activeVectorsCount++;
+
+            let pctTokens = 0, pctSms = 0, pctStorage = 0, pctLock = 0;
+            if (rawSum > 0) {
+                pctTokens = Math.round((rawTokens / rawSum) * 100);
+                pctSms = Math.round((rawSms / rawSum) * 100);
+                pctStorage = Math.round((rawStorage / rawSum) * 100);
+                pctLock = Math.max(0, 100 - (pctTokens + pctSms + pctStorage));
+            }
+
+            AppState.vectorPercentages = {
+                sessionTokens: pctTokens,
+                smsPreviews: pctSms,
+                localStorage: pctStorage,
+                weakLock: pctLock
+            };
+
+            document.getElementById('legendSessionTokens').innerText = `${pctTokens}%`;
+            document.getElementById('legendSmsPreviews').innerText = `${pctSms}%`;
+            document.getElementById('legendLocalStorage').innerText = `${pctStorage}%`;
+            document.getElementById('legendWeakLock').innerText = `${pctLock}%`;
+            document.getElementById('reportVectorCenterVal').innerText = activeVectorsCount;
+            document.getElementById('reportVectorTotalLabel').innerText = rawSum === 0 ? '0% Exposed' : '100% Share';
+
+            if (AppState.charts.attackVector) {
+                if (rawSum === 0) {
+                    AppState.charts.attackVector.data.datasets[0].data = [1];
+                    AppState.charts.attackVector.data.datasets[0].backgroundColor = ['#10B981'];
+                } else {
+                    AppState.charts.attackVector.data.datasets[0].data = [pctTokens, pctSms, pctStorage, pctLock];
+                    AppState.charts.attackVector.data.datasets[0].backgroundColor = ['#F43F5E', '#FBBF24', '#38BDF8', '#64748B'];
+                }
+                AppState.charts.attackVector.update();
+            }
+
+            // 3. Dynamic Shortest Compromise Path (Dijkstra Flow Diagram)
+            const flowContainer = document.getElementById('reportDijkstraFlowContainer');
+            const timeBadge = document.getElementById('reportDijkstraTimeBadge');
+            const summaryText = document.getElementById('reportDijkstraStatusSummary');
+
+            if (remote_wipe) {
+                timeBadge.innerText = 'Mitigated: Device Wiped';
+                timeBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 shadow-sm';
+                summaryText.innerText = '0 Hops / Remote Wipe Severed All Vectors';
+                flowContainer.innerHTML = `
+                    <div class="flex flex-col items-center">
+                        <div class="px-4 py-3 rounded-xl bg-[#0D1322] border border-emerald-500/50 text-emerald-300 text-xs sm:text-sm font-semibold whitespace-nowrap">
+                            Remote Erase Executed
+                        </div>
+                        <span class="text-[10px] font-mono text-emerald-400 mt-1.5">0:00s Lockdown</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center min-w-[40px] -mt-4">
+                        <svg class="w-full h-6 text-emerald-400 glow-arrow-emerald" viewBox="0 0 60 24" fill="none">
+                            <line x1="2" y1="12" x2="50" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                            <polyline points="44,6 52,12 44,18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="px-4 py-3 rounded-xl bg-[#0D1322] border border-emerald-500/50 text-emerald-300 text-xs sm:text-sm font-semibold whitespace-nowrap">
+                            Crypto Keys Purged
+                        </div>
+                        <span class="text-[10px] font-mono text-emerald-400 mt-1.5">Storage Zeroed</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center min-w-[40px] -mt-4">
+                        <svg class="w-full h-6 text-emerald-400 glow-arrow-emerald" viewBox="0 0 60 24" fill="none">
+                            <line x1="2" y1="12" x2="50" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                            <polyline points="44,6 52,12 44,18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="px-4 py-3 rounded-xl bg-[#0D1322] border border-emerald-500/60 text-emerald-300 text-xs sm:text-sm font-bold whitespace-nowrap">
+                            Attack Path Blocked
+                        </div>
+                        <span class="text-[10px] font-mono text-emerald-400 mt-1.5">100% Contained</span>
+                    </div>
+                `;
+            } else if (hide_notifs && app_lock && sim_pin && enable_fde) {
+                timeBadge.innerText = 'Est. Compromise: Blocked';
+                timeBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 shadow-sm';
+                summaryText.innerText = 'All Primary & Secondary Vectors Hardened';
+                flowContainer.innerHTML = `
+                    <div class="flex flex-col items-center">
+                        <div class="px-4 py-3 rounded-xl bg-[#0D1322] border border-sky-500/40 text-slate-200 text-xs sm:text-sm font-semibold whitespace-nowrap">
+                            Locked Screen
+                        </div>
+                        <span class="text-[10px] font-mono text-slate-300 mt-1.5">Previews Hidden</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center min-w-[36px] -mt-4">
+                        <svg class="w-full h-6 text-emerald-400 glow-arrow-emerald" viewBox="0 0 60 24" fill="none">
+                            <line x1="2" y1="12" x2="50" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                            <polyline points="44,6 52,12 44,18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="px-4 py-3 rounded-xl bg-[#0D1322] border border-emerald-500/40 text-emerald-300 text-xs sm:text-sm font-semibold whitespace-nowrap">
+                            SIM PIN + Biometrics
+                        </div>
+                        <span class="text-[10px] font-mono text-emerald-400 mt-1.5">Auth Enforced</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center min-w-[36px] -mt-4">
+                        <svg class="w-full h-6 text-emerald-400 glow-arrow-emerald" viewBox="0 0 60 24" fill="none">
+                            <line x1="2" y1="12" x2="50" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                            <polyline points="44,6 52,12 44,18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="px-4 py-3 rounded-xl bg-[#0D1322] border border-emerald-500/60 text-emerald-300 text-xs sm:text-sm font-bold whitespace-nowrap">
+                            AES-256 Vault Safe
+                        </div>
+                        <span class="text-[10px] font-mono text-emerald-400 mt-1.5">0 Data Leaked</span>
+                    </div>
+                `;
+            } else {
+                const estSec = apiData.attack_time_seconds || 45;
+                const estLabel = estSec < 60 ? `< 1 min (${estSec}s)` : `< ${Math.ceil(estSec / 60)} mins`;
+                const step2Label = hide_notifs ? (sim_pin ? 'USB / ADB Probe' : 'SIM Swap OTP') : 'SMS OTP';
+                const step2Sub = hide_notifs ? (sim_pin ? '+1m 10s Extraction' : '+1m 45s Carrier') : '+45s Intercept';
+                const step3Label = app_lock ? 'Cached Cloud Token' : 'Primary Gmail';
+                const step4Label = enable_fde ? 'OAuth Session Pivot' : 'Bank Reset';
+
+                timeBadge.innerText = `Est. Compromise: ${estLabel}`;
+                timeBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/40 shadow-sm';
+                summaryText.innerText = `4 Hops / ${activeVectorsCount} Active Attack Vectors`;
+
+                flowContainer.innerHTML = `
+                    <div class="flex flex-col items-center">
+                        <div class="px-4 py-3 rounded-xl bg-[#0D1322] border border-sky-500/40 text-slate-100 text-xs sm:text-sm font-semibold shadow-lg shadow-sky-950/30 whitespace-nowrap">
+                            Unlocked Screen
+                        </div>
+                        <span class="text-[10px] font-mono text-slate-300 mt-1.5">0:00s Entry</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center min-w-[36px] -mt-4">
+                        <svg class="w-full h-6 text-sky-400 glow-arrow-cyan" viewBox="0 0 60 24" fill="none">
+                            <line x1="2" y1="12" x2="50" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                            <polyline points="44,6 52,12 44,18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="px-4 py-3 rounded-xl bg-[#0D1322] border border-amber-500/40 text-slate-100 text-xs sm:text-sm font-semibold shadow-lg shadow-amber-950/30 whitespace-nowrap">
+                            ${step2Label}
+                        </div>
+                        <span class="text-[10px] font-mono text-slate-300 mt-1.5">${step2Sub}</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center min-w-[36px] -mt-4">
+                        <svg class="w-full h-6 text-amber-400 glow-arrow-amber" viewBox="0 0 60 24" fill="none">
+                            <line x1="2" y1="12" x2="50" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                            <polyline points="44,6 52,12 44,18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="px-4 py-3 rounded-xl bg-[#0D1322] border border-amber-500/50 text-slate-100 text-xs sm:text-sm font-semibold shadow-lg shadow-amber-950/30 whitespace-nowrap">
+                            ${step3Label}
+                        </div>
+                        <span class="text-[10px] font-mono text-slate-300 mt-1.5">+1m 30s Pivot</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center min-w-[36px] -mt-4">
+                        <svg class="w-full h-6 text-rose-500 glow-arrow-red" viewBox="0 0 60 24" fill="none">
+                            <line x1="2" y1="12" x2="50" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                            <polyline points="44,6 52,12 44,18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="px-4 py-3 rounded-xl bg-[#0D1322] border border-rose-500/60 text-rose-200 text-xs sm:text-sm font-bold shadow-lg shadow-rose-950/40 whitespace-nowrap">
+                            ${step4Label}
+                        </div>
+                        <span class="text-[10px] font-mono text-rose-400 mt-1.5">Compromise Target</span>
+                    </div>
+                `;
+            }
+
+            // 4. Dynamic Top Exposed Assets (Priority Queue) Table
+            const candidateAssets = [];
+            if (!remote_wipe) {
+                if (!hide_notifs || !app_lock) {
+                    candidateAssets.push({
+                        asset: 'net_banking_credentials',
+                        domain: 'Financial',
+                        score: (!hide_notifs && !app_lock) ? 98 : 84,
+                        action: !hide_notifs ? 'Disable lockscreen SMS previews' : 'Enable Biometric App Lock on UPI'
+                    });
+                }
+                if (!app_lock || !sim_pin) {
+                    candidateAssets.push({
+                        asset: 'admin_session',
+                        domain: 'Identity',
+                        score: (!app_lock && !sim_pin) ? 92 : 78,
+                        action: !sim_pin ? 'Configure SIM Lock PIN & hardware 2FA' : 'Revoke active session tokens'
+                    });
+                }
+                if (!enable_fde || !app_lock) {
+                    candidateAssets.push({
+                        asset: 'personal_backup.zip',
+                        domain: 'Work & Cloud',
+                        score: !enable_fde ? 75 : 62,
+                        action: !enable_fde ? 'Enable AES-256 Full Disk Encryption' : 'Revoke idle OAuth tokens'
+                    });
+                }
+            }
+
+            candidateAssets.sort((a, b) => b.score - a.score);
+            AppState.priorityQueue = candidateAssets;
+
+            const queueTbody = document.getElementById('reportPriorityTableBody');
+            const queueBadge = document.getElementById('reportQueueCountBadge');
+            queueBadge.innerText = `${candidateAssets.length} Active / Max-Heap Ranked`;
+
+            if (candidateAssets.length === 0) {
+                queueTbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="py-5 px-5 text-center text-emerald-400 font-medium">
+                            All high-value assets are secured and mitigated by active controls.
+                        </td>
+                    </tr>`;
+            } else {
+                queueTbody.innerHTML = candidateAssets.map(item => {
+                    let pillClass = 'bg-sky-500/15 text-sky-300 border-sky-500/30';
+                    if (item.score >= 90) {
+                        pillClass = 'bg-rose-500/15 text-rose-400 border-rose-500/30';
+                    } else if (item.score >= 78) {
+                        pillClass = 'bg-amber-500/15 text-amber-300 border-amber-500/30';
+                    }
+                    return `
+                        <tr class="hover:bg-slate-800/40 transition-colors">
+                            <td class="py-3.5 px-5 font-mono font-semibold text-slate-100">${item.asset}</td>
+                            <td class="py-3.5 px-5 text-slate-200">${item.domain}</td>
+                            <td class="py-3.5 px-5">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-bold border ${pillClass}">
+                                    ${item.score}/100
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-5 text-slate-100">${item.action}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function downloadReportJSON() {
+            const reportPayload = {
+                project: "PhoneShield",
+                report_type: "Live Domain Exposure Report",
+                active_security_controls: AppState.controls,
+                overall_exposure_score: AppState.exposureScore,
+                domains: [
+                    { name: "Identity Domain", exposure_pct: AppState.domainScores.identity, exposed_assets: ["Primary Email", "SMS 2FA", "Saved Passwords", "ID Scans"] },
+                    { name: "Financial Domain", exposure_pct: AppState.domainScores.financial, exposed_assets: ["UPI Apps", "Banking Sessions", "Saved Cards", "Crypto Wallet"] },
+                    { name: "Work & Cloud Storage", exposure_pct: AppState.domainScores.cloud, exposed_assets: ["Google Drive", "Corporate Slack", "GitHub Tokens"] }
+                ],
+                exposure_by_attack_vector: {
+                    "Session Tokens": AppState.vectorPercentages.sessionTokens,
+                    "SMS Previews": AppState.vectorPercentages.smsPreviews,
+                    "Local Storage": AppState.vectorPercentages.localStorage,
+                    "Weak Lock": AppState.vectorPercentages.weakLock
+                },
+                priority_queue: AppState.priorityQueue
+            };
+
+            const blob = new Blob([JSON.stringify(reportPayload, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "phoneshield-domain-exposure-report.json";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        /* =====================================================================
+           ATTACK LIFECYCLE ENGINE (Generates New Audit Logs + Updates Open Ones)
+        ===================================================================== */
+        function logNewAttackEvent({ signatureKey, type, source, baseSeverity, defendingControl, activeAction, blockedAction, transitionNote = null }) {
+            if (!AppState.isMonitoringActive) return;
+
+            const isBlockedNow = isControlProtecting(defendingControl);
+            const now = getFormattedTime(0);
+
+            AppState.eventSequence++;
+            const newEvent = {
+                id: `EVT-${AppState.eventSequence}`,
+                signatureKey,
+                timestamp: now,
+                type,
+                source,
+                baseSeverity,
+                defendingControl,
+                activeAction,
+                blockedAction,
+                severity: isBlockedNow ? 'LOW' : baseSeverity,
+                status: isBlockedNow ? 'Blocked' : 'Active',
+                action: isBlockedNow ? blockedAction : activeAction,
+                transitionNote: transitionNote || (isBlockedNow ? 'Attack Prevented by Active Control' : 'Active Exploit Vector Detected')
+            };
+
+            AppState.threats.unshift(newEvent);
+
+            if (AppState.threats.length > 30) {
+                AppState.threats.pop();
+            }
+
+            syncAllViews();
+        }
+
+        function transitionThreatStatus(eventId, newStatus) {
+            const target = AppState.threats.find(t => t.id === eventId);
+            if (!target || target.status === newStatus) return;
+
+            const prevStatus = target.status;
+            target.status = newStatus;
+            target.timestamp = getFormattedTime(0);
+            target.transitionNote = `Analyst Update: ${prevStatus} → ${newStatus}`;
+
+            if (newStatus === 'Investigating') {
+                target.action = 'SOC Analyst Triage In Progress';
+            } else if (newStatus === 'Blocked') {
+                target.severity = 'LOW';
+                target.action = 'Attack Vector Blocked & Contained';
+            } else if (newStatus === 'Resolved') {
+                target.severity = 'LOW';
+                target.action = 'Incident Closed & Verified';
+            }
+
+            syncAllViews();
+        }
+
+        function mitigateMatchingActiveThreats(enabledControlKey, controlLabel) {
+            const now = getFormattedTime(0);
+            AppState.threats.forEach(threat => {
+                if ((threat.status === 'Active' || threat.status === 'Investigating') &&
+                    (threat.defendingControl === enabledControlKey || enabledControlKey === 'remote_wipe')) {
+                    const prev = threat.status;
+                    threat.status = 'Blocked';
+                    threat.severity = 'LOW';
+                    threat.timestamp = now;
+                    threat.action = `Neutralized by ${controlLabel}`;
+                    threat.transitionNote = `Mitigated: ${prev} → Blocked (${controlLabel} ON)`;
+                }
+            });
+        }
+
+        /* =====================================================================
+           AUTOMATIC LIVE TELEMETRY GENERATOR (Runs Every 6 Seconds)
+        ===================================================================== */
+        function startLiveTelemetryFeed() {
+            if (AppState.telemetryTimer) clearInterval(AppState.telemetryTimer);
+
+            AppState.telemetryTimer = setInterval(() => {
+                if (!AppState.isMonitoringActive) return;
+
+                const vector = ATTACK_VECTORS[AppState.probeIndex % ATTACK_VECTORS.length];
+                AppState.probeIndex++;
+
+                const isProtected = isControlProtecting(vector.defendingControl);
+                logNewAttackEvent({
+                    ...vector,
+                    transitionNote: isProtected
+                        ? `Auto-Telemetry: Attack Blocked by Defense`
+                        : `Auto-Telemetry: Unmitigated Probe Detected`
+                });
+            }, 6000);
+        }
+
+        /* =====================================================================
+           SECURITY CONTROLS HANDLER
+        ===================================================================== */
+        function handleControlToggle(controlKey, controlLabel) {
+            const checkboxMap = {
+                hide_notifs: 'toggleNotifs',
+                app_lock: 'toggleAppLock',
+                enable_fde: 'toggleFDE',
+                sim_pin: 'toggleSIM',
+                remote_wipe: 'toggleWipe'
+            };
+
+            const isChecked = document.getElementById(checkboxMap[controlKey]).checked;
+            AppState.controls[controlKey] = isChecked;
+
+            const statusBanner = document.getElementById('lastConfigChangeText');
+            if (statusBanner) {
+                statusBanner.innerText = `Config Updated [${getFormattedTime(0)}]: ${controlLabel} → ${isChecked ? 'ENABLED' : 'DISABLED'}`;
+            }
+
+            if (isChecked) {
+                mitigateMatchingActiveThreats(controlKey, controlLabel);
+            }
+
+            const matchingVector = ATTACK_VECTORS.find(v => v.defendingControl === controlKey);
+            if (matchingVector) {
+                logNewAttackEvent({
+                    ...matchingVector,
+                    transitionNote: isChecked
+                        ? `Control Enabled: ${controlLabel} Blocked Probe`
+                        : `Control Disabled: ${controlLabel} Exposed`
+                });
+            }
+
+            updateSimulation();
+        }
+
         function resetToDefault() {
+            Object.keys(AppState.controls).forEach(k => AppState.controls[k] = false);
+
             document.getElementById('toggleNotifs').checked = false;
             document.getElementById('toggleAppLock').checked = false;
             document.getElementById('toggleFDE').checked = false;
             document.getElementById('toggleSIM').checked = false;
             document.getElementById('toggleWipe').checked = false;
+
+            const statusBanner = document.getElementById('lastConfigChangeText');
+            if (statusBanner) {
+                statusBanner.innerText = `Config Reset [${getFormattedTime(0)}]: All 5 Controls Disabled`;
+            }
+
             updateSimulation();
         }
 
-        function updateVirtualPhone(hideNotifs, appLock, enableFde, simPin, remoteWipe) {
-            // 1. Lockscreen Previews Toggle
-            document.getElementById('notifExposed').classList.toggle('d-none', hideNotifs);
-            document.getElementById('notifHidden').classList.toggle('d-none', !hideNotifs);
+        function simulateAttackEvent() {
+            const chosen = ATTACK_VECTORS[Math.floor(Math.random() * ATTACK_VECTORS.length)];
+            const isProtected = isControlProtecting(chosen.defendingControl);
 
-            // 2. Biometric App Lock Toggle
-            document.querySelectorAll('.app-lock-badge').forEach(badge => {
-                badge.style.display = appLock ? 'flex' : 'none';
+            logNewAttackEvent({
+                ...chosen,
+                transitionNote: isProtected
+                    ? `Manual Probe Blocked at ${getFormattedTime(0)}`
+                    : `Manual Probe Succeeded (Active Exposure) at ${getFormattedTime(0)}`
+            });
+        }
+
+        function toggleMonitoring() {
+            AppState.isMonitoringActive = !AppState.isMonitoringActive;
+            const btn = document.getElementById('toggleMonitorBtn');
+            const badge = document.getElementById('liveStatusBadge');
+            const dot = document.getElementById('livePulseDot');
+            const txt = document.getElementById('liveStatusText');
+
+            if (AppState.isMonitoringActive) {
+                btn.className = 'btn btn-sm btn-outline-warning';
+                btn.innerHTML = '<i class="bi bi-pause-circle-fill"></i> Pause Monitoring';
+                badge.className = 'badge bg-dark border border-success text-success d-flex align-items-center gap-2 px-2 py-1';
+                dot.classList.remove('paused');
+                txt.innerText = 'LIVE MONITORING';
+            } else {
+                btn.className = 'btn btn-sm btn-outline-success';
+                btn.innerHTML = '<i class="bi bi-play-circle-fill"></i> Resume Monitoring';
+                badge.className = 'badge bg-dark border border-warning text-warning d-flex align-items-center gap-2 px-2 py-1';
+                dot.classList.add('paused');
+                txt.innerText = 'STREAM PAUSED';
+            }
+        }
+
+        /* =====================================================================
+           SYNCHRONIZED UI RENDERING ACROSS ALL DASHBOARD & SOC COMPONENTS
+        ===================================================================== */
+        function syncAllViews() {
+            const controlValues = Object.values(AppState.controls);
+            const totalControls = controlValues.length;
+            const enabledControls = controlValues.filter(Boolean).length;
+            const disabledControls = totalControls - enabledControls;
+            const coveragePct = Math.round((enabledControls / totalControls) * 100);
+
+            document.getElementById('postureTotalControls').innerText = totalControls;
+            document.getElementById('postureEnabledControls').innerText = enabledControls;
+            document.getElementById('postureDisabledControls').innerText = disabledControls;
+            document.getElementById('postureCoveragePct').innerText = `${coveragePct}%`;
+
+            const totalThreats = AppState.threats.length;
+            const activeCount = AppState.threats.filter(t => t.status === 'Active').length;
+            const blockedCount = AppState.threats.filter(t => t.status === 'Blocked').length;
+            const investigatingCount = AppState.threats.filter(t => t.status === 'Investigating').length;
+            const resolvedCount = AppState.threats.filter(t => t.status === 'Resolved').length;
+
+            document.getElementById('kpiTotalThreats').innerText = totalThreats;
+            document.getElementById('kpiActiveThreats').innerText = activeCount;
+            document.getElementById('kpiBlockedAttacks').innerText = blockedCount;
+            document.getElementById('kpiInvResolved').innerText = `${investigatingCount} / ${resolvedCount}`;
+
+            const score = AppState.exposureScore;
+            const statusEl = document.getElementById('kpiDeviceStatus');
+            const subEl = document.getElementById('kpiDeviceSub');
+            const accentEl = document.getElementById('kpiStatusAccent');
+            const iconEl = document.getElementById('kpiStatusIcon');
+
+            subEl.innerText = `Exposure Risk: ${score}% | Coverage: ${coveragePct}%`;
+            if (score >= 60) {
+                statusEl.innerText = 'AT RISK';
+                statusEl.className = 'soc-kpi-value text-danger';
+                accentEl.className = 'soc-kpi-accent bg-danger';
+                iconEl.className = 'bi bi-exclamation-triangle-fill fs-4 text-danger opacity-75';
+            } else if (score >= 30) {
+                statusEl.innerText = 'GUARDED';
+                statusEl.className = 'soc-kpi-value text-warning';
+                accentEl.className = 'soc-kpi-accent bg-warning';
+                iconEl.className = 'bi bi-shield-exclamation fs-4 text-warning opacity-75';
+            } else {
+                statusEl.innerText = 'HARDENED';
+                statusEl.className = 'soc-kpi-value text-success';
+                accentEl.className = 'soc-kpi-accent bg-success';
+                iconEl.className = 'bi bi-shield-fill-check fs-4 text-success opacity-75';
+            }
+
+            renderLiveStream();
+            renderSocTable();
+            updateSocCharts();
+        }
+
+        function getStatusBadgeHtml(status) {
+            switch (status) {
+                case 'Active':
+                    return '<span class="badge bg-danger"><i class="bi bi-exclamation-circle me-1"></i>Active</span>';
+                case 'Investigating':
+                    return '<span class="badge bg-warning text-dark"><i class="bi bi-search me-1"></i>Investigating</span>';
+                case 'Blocked':
+                    return '<span class="badge bg-success"><i class="bi bi-shield-check me-1"></i>Blocked</span>';
+                case 'Resolved':
+                    return '<span class="badge bg-info text-dark"><i class="bi bi-check2-all me-1"></i>Resolved</span>';
+                default:
+                    return `<span class="badge bg-secondary">${status}</span>`;
+            }
+        }
+
+        function renderLiveStream() {
+            const container = document.getElementById('socLiveStream');
+            container.innerHTML = '';
+
+            if (AppState.threats.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-slate-300 py-5">
+                        <i class="bi bi-shield-check fs-2 d-block mb-2 text-info"></i>
+                        No attack probes detected yet. Click <strong>Simulate Attack Probe</strong> or interact with apps on the Virtual Phone.
+                    </div>`;
+                return;
+            }
+
+            AppState.threats.forEach(evt => {
+                const sevClass = `sev-${evt.severity.toLowerCase()}`;
+                const badgeClass = `badge-sev-${evt.severity.toLowerCase()}`;
+
+                container.innerHTML += `
+                    <div class="stream-item ${sevClass}">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="font-monospace fw-bold text-info small">${evt.id}</span>
+                                <span class="badge ${badgeClass}" style="font-size: 0.68rem;">${evt.severity}</span>
+                            </div>
+                            <span class="font-monospace text-slate-300" style="font-size: 0.75rem;">${evt.timestamp}</span>
+                        </div>
+                        <div class="fw-semibold text-white small mb-1">${evt.type}</div>
+                        <div class="text-info mb-1" style="font-size: 0.73rem;">${evt.transitionNote}</div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-slate-300" style="font-size: 0.74rem;"><i class="bi bi-hdd-network"></i> ${evt.source}</span>
+                            ${getStatusBadgeHtml(evt.status)}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderSocTable() {
+            const search = document.getElementById('socSearchInput').value.toLowerCase();
+            const sevFilter = document.getElementById('socSeverityFilter').value;
+            const statusFilter = document.getElementById('socStatusFilter').value;
+            const tbody = document.getElementById('socEventTableBody');
+            tbody.innerHTML = '';
+
+            const filtered = AppState.threats.filter(evt => {
+                const matchesSearch = evt.id.toLowerCase().includes(search) ||
+                                      evt.type.toLowerCase().includes(search) ||
+                                      evt.source.toLowerCase().includes(search) ||
+                                      evt.action.toLowerCase().includes(search);
+                const matchesSev = (sevFilter === 'ALL') || (evt.severity === sevFilter);
+                const matchesStatus = (statusFilter === 'ALL') || (evt.status === statusFilter);
+                return matchesSearch && matchesSev && matchesStatus;
             });
 
-            // 3. Full Disk Encryption Toggle
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-slate-300 py-4">No attack events match the current filter criteria.</td></tr>';
+                return;
+            }
+
+            filtered.forEach(evt => {
+                const badgeClass = `badge-sev-${evt.severity.toLowerCase()}`;
+
+                let workflowButtons = '';
+                if (evt.status === 'Active') {
+                    workflowButtons = `
+                        <button class="btn btn-xs btn-outline-warning py-0 px-2 me-1" style="font-size:0.74rem;" onclick="transitionThreatStatus('${evt.id}', 'Investigating')">Investigate</button>
+                        <button class="btn btn-xs btn-outline-success py-0 px-2" style="font-size:0.74rem;" onclick="transitionThreatStatus('${evt.id}', 'Blocked')">Block</button>
+                    `;
+                } else if (evt.status === 'Investigating') {
+                    workflowButtons = `
+                        <button class="btn btn-xs btn-outline-success py-0 px-2 me-1" style="font-size:0.74rem;" onclick="transitionThreatStatus('${evt.id}', 'Blocked')">Block</button>
+                        <button class="btn btn-xs btn-outline-info py-0 px-2" style="font-size:0.74rem;" onclick="transitionThreatStatus('${evt.id}', 'Resolved')">Resolve</button>
+                    `;
+                } else if (evt.status === 'Blocked') {
+                    workflowButtons = `
+                        <button class="btn btn-xs btn-outline-info py-0 px-2" style="font-size:0.74rem;" onclick="transitionThreatStatus('${evt.id}', 'Resolved')">Close / Resolve</button>
+                    `;
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="font-monospace text-info fw-bold">${evt.id}</td>
+                        <td class="font-monospace text-slate-300">${evt.timestamp}</td>
+                        <td class="fw-semibold">${evt.type}</td>
+                        <td><span class="badge bg-dark border border-secondary text-light">${evt.source}</span></td>
+                        <td><span class="badge ${badgeClass}">${evt.severity}</span></td>
+                        <td>${getStatusBadgeHtml(evt.status)}</td>
+                        <td>
+                            <div class="text-slate-300 small mb-1">${evt.action}</div>
+                            <div>${workflowButtons}</div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function initSocCharts() {
+            Chart.defaults.color = '#cbd5e1';
+            Chart.defaults.borderColor = '#1E293B';
+            Chart.defaults.font.family = "'Inter', 'Segoe UI', system-ui, sans-serif";
+
+            AppState.charts.severity = new Chart(document.getElementById('chartSeverity'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Critical', 'High', 'Medium', 'Low'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: ['#f43f5e', '#f97316', '#f59e0b', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } } }
+                }
+            });
+
+            AppState.charts.timeline = new Chart(document.getElementById('chartTimeline'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Audit Events',
+                        data: [],
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+
+            AppState.charts.source = new Chart(document.getElementById('chartSource'), {
+                type: 'bar',
+                data: {
+                    labels: ['Lockscreen', 'Storage/USB', 'Cellular SIM', 'Application Layer', 'Cloud/OAuth'],
+                    datasets: [{
+                        label: 'Attack Events',
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+
+            AppState.charts.trends = new Chart(document.getElementById('chartTrends'), {
+                type: 'bar',
+                data: {
+                    labels: ['Active', 'Investigating', 'Blocked', 'Resolved'],
+                    datasets: [{
+                        label: 'Incidents',
+                        data: [0, 0, 0, 0],
+                        backgroundColor: ['#f43f5e', '#f59e0b', '#10b981', '#38bdf8'],
+                        borderRadius: 6,
+                        barThickness: 28
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+
+        function updateSocCharts() {
+            if (!AppState.charts.severity) return;
+
+            const crit = AppState.threats.filter(e => e.severity === 'CRITICAL').length;
+            const high = AppState.threats.filter(e => e.severity === 'HIGH').length;
+            const med = AppState.threats.filter(e => e.severity === 'MEDIUM').length;
+            const low = AppState.threats.filter(e => e.severity === 'LOW').length;
+
+            AppState.charts.severity.data.datasets[0].data = [crit, high, med, low];
+            AppState.charts.severity.update();
+
+            const ordered = [...AppState.threats].slice(0, 12).reverse();
+            AppState.charts.timeline.data.labels = ordered.map(e => e.id);
+            AppState.charts.timeline.data.datasets[0].data = ordered.map((_, idx) => idx + 1);
+            AppState.charts.timeline.update();
+
+            const sources = ['Lockscreen', 'Storage/USB', 'Cellular SIM', 'Application Layer', 'Cloud/OAuth'];
+            AppState.charts.source.data.datasets[0].data = sources.map(s => AppState.threats.filter(e => e.source === s).length);
+            AppState.charts.source.update();
+
+            const active = AppState.threats.filter(e => e.status === 'Active').length;
+            const inv = AppState.threats.filter(e => e.status === 'Investigating').length;
+            const blocked = AppState.threats.filter(e => e.status === 'Blocked').length;
+            const resolved = AppState.threats.filter(e => e.status === 'Resolved').length;
+
+            AppState.charts.trends.data.datasets[0].data = [active, inv, blocked, resolved];
+            AppState.charts.trends.update();
+        }
+
+        /* =====================================================================
+           VIRTUAL PHONE & C/FLASK ENGINE SYNC
+        ===================================================================== */
+        function handleAppClick(title, detail, sourceCategory, defendingControl, severity) {
+            const isProtected = isControlProtecting(defendingControl);
+
+            logNewAttackEvent({
+                signatureKey: 'BANKING_SESSION_HIJACK',
+                type: `${title}: ${detail}`,
+                source: sourceCategory,
+                baseSeverity: severity,
+                defendingControl,
+                activeAction: 'Enable Biometric App Lock Immediately',
+                blockedAction: AppState.controls.remote_wipe ? 'Blocked via Remote Wipe Lock' : 'Blocked via Biometric App Lock',
+                transitionNote: isProtected ? `App Click Blocked (${title})` : `App Click Compromised (${title})`
+            });
+
+            if (isProtected) {
+                alert(`[Biometric App Lock Active]\nAccess to ${title} was BLOCKED.`);
+            } else {
+                alert(`[Simulation Intercept] ${title}:\n${detail}`);
+            }
+        }
+
+        function updateVirtualPhone() {
+            const { hide_notifs, app_lock, enable_fde, sim_pin, remote_wipe } = AppState.controls;
+
+            document.getElementById('notifExposed').classList.toggle('d-none', hide_notifs);
+            document.getElementById('notifHidden').classList.toggle('d-none', !hide_notifs);
+
+            document.querySelectorAll('.app-lock-badge').forEach(badge => {
+                badge.style.display = app_lock ? 'flex' : 'none';
+            });
+
             const fdeBadge = document.getElementById('fdeBadge');
             const storageText = document.getElementById('storageStatusText');
-            if (enableFde) {
+            if (enable_fde) {
                 fdeBadge.className = 'badge bg-success';
                 fdeBadge.innerText = 'FDE AES-256';
                 storageText.className = 'text-success fw-bold';
-                storageText.innerHTML = '<i class="bi bi-shield-lock"></i> USB / ADB Storage Extraction: ENCRYPTED & LOCKED';
+                storageText.innerHTML = '<i class="bi bi-shield-lock"></i> USB / ADB Storage Extraction: ENCRYPTED &amp; LOCKED';
             } else {
                 fdeBadge.className = 'badge bg-secondary';
                 fdeBadge.innerText = 'UNENCRYPTED';
@@ -609,9 +2360,8 @@
                 storageText.innerHTML = '<i class="bi bi-usb-symbol"></i> USB / ADB Storage Extraction: VULNERABLE';
             }
 
-            // 4. SIM Lock PIN Toggle
             const simBadge = document.getElementById('simBadge');
-            if (simPin) {
+            if (sim_pin) {
                 simBadge.className = 'text-success';
                 simBadge.innerHTML = '<i class="bi bi-sim-fill"></i> SIM PIN LOCKED';
             } else {
@@ -619,35 +2369,23 @@
                 simBadge.innerHTML = '<i class="bi bi-sim"></i> 5G (NO PIN)';
             }
 
-            // 5. Remote Find/Wipe Toggle
-            document.getElementById('wipeOverlay').style.display = remoteWipe ? 'flex' : 'none';
+            document.getElementById('wipeOverlay').style.display = remote_wipe ? 'flex' : 'none';
         }
 
         function updateSimulation() {
-            const hideNotifs = document.getElementById('toggleNotifs').checked;
-            const appLock = document.getElementById('toggleAppLock').checked;
-            const enableFde = document.getElementById('toggleFDE').checked;
-            const simPin = document.getElementById('toggleSIM').checked;
-            const remoteWipe = document.getElementById('toggleWipe').checked;
-
-            // Update virtual phone visual states immediately
-            updateVirtualPhone(hideNotifs, appLock, enableFde, simPin, remoteWipe);
+            updateVirtualPhone();
+            const { hide_notifs, app_lock, enable_fde, sim_pin, remote_wipe } = AppState.controls;
 
             fetch('/api/simulate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    hide_notifs: hideNotifs,
-                    app_lock: appLock,
-                    enable_fde: enableFde,
-                    sim_pin: simPin,
-                    remote_wipe: remoteWipe
-                })
+                body: JSON.stringify(AppState.controls)
             })
             .then(res => res.json())
             .then(data => {
-                // Guarantee numeric score (never undefined%)
                 const score = (typeof data.exposure_score === 'number') ? data.exposure_score : 83;
+                AppState.exposureScore = score;
+
                 const scoreVal = document.getElementById('riskScoreValue');
                 const meterFill = document.getElementById('riskMeterFill');
                 const levelLabel = document.getElementById('riskLevelLabel');
@@ -655,7 +2393,6 @@
                 scoreVal.innerText = `${score}%`;
                 meterFill.style.width = `${score}%`;
 
-                // Color coding: Red (High >= 60), Orange/Yellow (Moderate 30-59), Green (Low < 30)
                 if (score >= 60) {
                     scoreVal.className = 'score-val text-danger';
                     meterFill.className = 'meter-fill bg-danger';
@@ -673,18 +2410,16 @@
                     levelLabel.className = 'badge bg-success fs-6';
                 }
 
-                // Update Score Risk Factors dynamically
-                updateFactor('rf1', 'rf1Text', !simPin && !remoteWipe, 'SIM Open', 'SIM Locked');
-                updateFactor('rf2', 'rf2Text', !appLock && !remoteWipe, 'Apps Open', 'App Locked');
-                updateFactor('rf3', 'rf3Text', !hideNotifs && !remoteWipe, 'OTP Visible', 'OTP Hidden');
-                updateFactor('rf4', 'rf4Text', !enableFde && !remoteWipe, 'Raw Disk', 'Encrypted');
+                updateFactor('rf1', 'rf1Text', !sim_pin && !remote_wipe, 'SIM Open', 'SIM Locked');
+                updateFactor('rf2', 'rf2Text', !app_lock && !remote_wipe, 'Apps Open', 'App Locked');
+                updateFactor('rf3', 'rf3Text', !hide_notifs && !remote_wipe, 'OTP Visible', 'OTP Hidden');
+                updateFactor('rf4', 'rf4Text', !enable_fde && !remote_wipe, 'Raw Disk', 'Encrypted');
 
-                // Update Dijkstra Attack Path
                 const pathContainer = document.getElementById('attackPathContainer');
                 const timeBadge = document.getElementById('attackTimeBadge');
                 pathContainer.innerHTML = '';
 
-                const isBlocked = remoteWipe || (hideNotifs && appLock && simPin && enableFde);
+                const isBlocked = remote_wipe || (hide_notifs && app_lock && sim_pin && enable_fde);
                 timeBadge.className = isBlocked ? 'badge bg-success' : 'badge bg-danger';
                 timeBadge.innerText = isBlocked ? 'Path Blocked' : `Est. ${data.attack_time_seconds || 45}s`;
 
@@ -696,48 +2431,38 @@
                     });
                 }
 
-                // Render Assessment Tab
                 document.getElementById('assessmentTableBody').innerHTML = `
                     <tr>
                         <td>Lockscreen Previews</td><td>Notifications</td>
-                        <td><span class="badge ${hideNotifs ? 'bg-success' : 'bg-danger'}">${hideNotifs ? 'SECURED' : 'VULNERABLE'}</span></td>
-                        <td>${hideNotifs ? 'OTP SMS Snippets hidden on lock screen.' : '2FA SMS codes visible without unlock.'}</td>
+                        <td><span class="badge ${hide_notifs ? 'bg-success' : 'bg-danger'}">${hide_notifs ? 'SECURED' : 'VULNERABLE'}</span></td>
+                        <td>${hide_notifs ? 'OTP SMS Snippets hidden on lock screen.' : '2FA SMS codes visible without unlock.'}</td>
                     </tr>
                     <tr>
                         <td>Biometric App Lock</td><td>Application Data</td>
-                        <td><span class="badge ${appLock ? 'bg-success' : 'bg-danger'}">${appLock ? 'SECURED' : 'VULNERABLE'}</span></td>
-                        <td>${appLock ? 'Secondary authentication required for sensitive apps.' : 'Notes, Photos, and UPI open directly.'}</td>
+                        <td><span class="badge ${app_lock ? 'bg-success' : 'bg-danger'}">${app_lock ? 'SECURED' : 'VULNERABLE'}</span></td>
+                        <td>${app_lock ? 'Secondary authentication required for sensitive apps.' : 'Notes, Photos, and UPI open directly.'}</td>
                     </tr>
                     <tr>
                         <td>Full Disk Encryption</td><td>Storage Files</td>
-                        <td><span class="badge ${enableFde ? 'bg-success' : 'bg-danger'}">${enableFde ? 'SECURED' : 'VULNERABLE'}</span></td>
-                        <td>${enableFde ? 'Storage encrypted at rest via AES-256.' : 'Files extractable via physical USB access.'}</td>
+                        <td><span class="badge ${enable_fde ? 'bg-success' : 'bg-danger'}">${enable_fde ? 'SECURED' : 'VULNERABLE'}</span></td>
+                        <td>${enable_fde ? 'Storage encrypted at rest via AES-256.' : 'Files extractable via physical USB access.'}</td>
                     </tr>
                     <tr>
                         <td>SIM Lock PIN</td><td>Cellular / SMS</td>
-                        <td><span class="badge ${simPin ? 'bg-success' : 'bg-danger'}">${simPin ? 'SECURED' : 'VULNERABLE'}</span></td>
-                        <td>${simPin ? 'SIM blocked on second device transfer.' : 'SIM moveable to intercept OTPs.'}</td>
+                        <td><span class="badge ${sim_pin ? 'bg-success' : 'bg-danger'}">${sim_pin ? 'SECURED' : 'VULNERABLE'}</span></td>
+                        <td>${sim_pin ? 'SIM blocked on second device transfer.' : 'SIM moveable to intercept OTPs.'}</td>
                     </tr>
                     <tr>
                         <td>Remote Find/Wipe</td><td>Device Recovery</td>
-                        <td><span class="badge ${remoteWipe ? 'bg-success' : 'bg-danger'}">${remoteWipe ? 'ACTIVE' : 'STANDBY'}</span></td>
-                        <td>${remoteWipe ? 'Device locked and wiped remotely.' : 'Device remains active for physical attacker.'}</td>
+                        <td><span class="badge ${remote_wipe ? 'bg-success' : 'bg-danger'}">${remote_wipe ? 'ACTIVE' : 'STANDBY'}</span></td>
+                        <td>${remote_wipe ? 'Device locked and wiped remotely.' : 'Device remains active for physical attacker.'}</td>
                     </tr>
                 `;
 
-                // Render Reports Tab
-                const identityScore = data.domains ? data.domains.identity : 85;
-                const financialScore = data.domains ? data.domains.financial : 95;
-                const cloudScore = data.domains ? data.domains.cloud : 70;
+                // Update Global Reports Tab Dynamically
+                updateGlobalReportsUI(data);
 
-                document.getElementById('reportBarIdentity').style.width = `${identityScore}%`;
-                document.getElementById('reportBarIdentity').innerText = `${identityScore}%`;
-                document.getElementById('reportBarFinancial').style.width = `${financialScore}%`;
-                document.getElementById('reportBarFinancial').innerText = `${financialScore}%`;
-                document.getElementById('reportBarCloud').style.width = `${cloudScore}%`;
-                document.getElementById('reportBarCloud').innerText = `${cloudScore}%`;
-
-                // Render Risk Tab (Max-Heap)
+                // Update Risk Tab Table
                 const riskBody = document.getElementById('riskTableBody');
                 riskBody.innerHTML = '';
                 if (data.ranked_assets && data.ranked_assets.length > 0) {
@@ -753,6 +2478,8 @@
                 } else {
                     riskBody.innerHTML = '<tr><td colspan="4" class="text-success text-center">No Exposed Assets (Device Fully Secured)</td></tr>';
                 }
+
+                syncAllViews();
             });
         }
 
@@ -770,7 +2497,16 @@
             }
         }
 
-        window.onload = updateSimulation;
+        window.onload = function() {
+            const activeNavBtn = document.querySelector('.nav-tab-btn.active');
+            if (activeNavBtn) positionTabPill(activeNavBtn);
+
+            initGlobalReportChart();
+            initSocCharts();
+            seedInitialThreats();
+            updateSimulation();
+            startLiveTelemetryFeed();
+        };
     </script>
 </body>
 </html>
