@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhoneExposure Lab — Lost Phone Exposure Simulator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #0b0d10; color: #f4f6f8; font-family: 'Segoe UI', system-ui, sans-serif; }
+        
+        .card-dark { 
+            background-color: #171b21 !important; 
+            border: 1px solid #2a3039 !important; 
+            border-radius: 14px; 
+            padding: 20px 24px !important;
+            color: #f4f6f8 !important; 
+        }
+        .card-header-custom { 
+            font-weight: 700; 
+            color: #55a7ff !important; 
+            font-size: 1.05rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+        }
+
+        .form-check-label { 
+            color: #ffffff !important; 
+            font-weight: 600 !important; 
+            font-size: 0.9rem; 
+            white-space: nowrap;
+            margin-left: 6px;
+            cursor: pointer;
+        }
+
+        .tab-bar-container {
+            background: #111419;
+            border: 1px solid #2a3039;
+            border-radius: 50px;
+            padding: 6px;
+            display: inline-flex;
+            gap: 6px;
+        }
+        .nav-tab-btn {
+            background: transparent;
+            border: none;
+            color: #a9b1bc !important;
+            padding: 8px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: all 0.25s ease;
+        }
+        .nav-tab-btn.active {
+            background: #ffffff !important;
+            color: #0d1117 !important;
+            box-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Virtual Smartphone Frame */
+        .phone-frame {
+            width: 320px;
+            height: 640px;
+            background: #171b21;
+            border: 10px solid #2a3039;
+            border-radius: 40px;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 0 35px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+        }
+        .phone-screen {
+            height: 100%;
+            background: linear-gradient(180deg, #1f252d 0%, #0b0d10 100%);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Remote Wipe Overlay */
+        .wipe-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(11, 13, 16, 0.96);
+            z-index: 20;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px;
+        }
+
+        /* Dynamic Security Meter */
+        .meter-box {
+            background: #20252d;
+            border: 1px solid #2a3039;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .score-val {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.1;
+            transition: color 0.3s ease;
+        }
+        .meter-track {
+            height: 14px;
+            background-color: #111419;
+            border-radius: 999px;
+            overflow: hidden;
+            border: 1px solid #2a3039;
+            margin: 14px 0 8px 0;
+        }
+        .meter-fill {
+            height: 100%;
+            width: 83%;
+            transition: width 0.4s ease, background-color 0.4s ease;
+        }
+
+        .risk-factors-heading {
+            color: #8b949e !important;
+            font-weight: 700 !important;
+            font-size: 0.78rem !important;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .risk-factor-tag {
+            background: #20252d !important;
+            border: 1px solid #2a3039 !important;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            color: #ffffff !important;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+        }
+        .risk-dot { width: 9px; height: 9px; border-radius: 50%; background: #35c782; transition: all 0.3s ease; }
+        .risk-dot.active { background: #f0525b; box-shadow: 0 0 8px #f0525b; }
+
+        .app-wrapper { position: relative; display: inline-block; }
+        .app-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            transition: transform 0.15s ease;
+        }
+        .app-icon:hover { transform: scale(1.06); }
+        .app-lock-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #35c782;
+            color: #0b0d10;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border: 2px solid #171b21;
+        }
+
+        .path-step { 
+            background: #20252d !important; 
+            border: 1px solid #2a3039 !important;
+            border-left: 5px solid #f0525b !important; 
+            padding: 12px 14px; 
+            margin-bottom: 10px; 
+            border-radius: 8px; 
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            font-size: 0.92rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .path-step.blocked {
+            border-left-color: #35c782 !important;
+            color: #35c782 !important;
+        }
+
+        .emergency-card {
+            background-color: #171b21 !important;
+            border: 1px solid #f0525b !important;
+            border-radius: 14px;
+            padding: 20px 24px !important;
+        }
+        .action-step-card {
+            background: #20252d !important;
+            border: 1px solid #2a3039 !important;
+            border-radius: 10px;
+            padding: 16px;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="p-3">
+
+    <!-- Top Navigation Tabs -->
+    <div class="text-center my-3">
+        <div class="tab-bar-container">
+            <button class="nav-tab-btn active" onclick="switchTab(this, 'dashboardTab')">Dashboard</button>
+            <button class="nav-tab-btn" onclick="switchTab(this, 'assessmentsTab')">Assessments</button>
+            <button class="nav-tab-btn" onclick="switchTab(this, 'reportsTab')">Global Reports</button>
+            <button class="nav-tab-btn" onclick="switchTab(this, 'threatFeedTab')">Threat Feed</button>
+            <button class="nav-tab-btn" onclick="switchTab(this, 'riskTab')">Risk</button>
+        </div>
+    </div>
+
+    <div class="container-fluid px-4 mt-3">
+        
+        <!-- DASHBOARD TAB -->
+        <div id="dashboardTab" class="tab-content-view">
+            
+            <!-- Security Controls Configuration -->
+            <div class="card-dark mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="card-header-custom">
+                        <i class="bi bi-sliders text-info"></i> Security Controls Configuration
+                    </span>
+                    <button class="btn btn-sm btn-outline-warning" onclick="resetToDefault()">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset to Default
+                    </button>
+                </div>
+                <div class="row text-light g-3 align-items-center">
+                    <div class="col-xl-2 col-md-4 col-sm-6">
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input class="form-check-input ms-0" type="checkbox" id="toggleNotifs" onchange="updateSimulation()">
+                            <label class="form-check-label" for="toggleNotifs">Hide Lockscreen Previews</label>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-md-4 col-sm-6">
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input class="form-check-input ms-0" type="checkbox" id="toggleAppLock" onchange="updateSimulation()">
+                            <label class="form-check-label" for="toggleAppLock">Biometric App Lock</label>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-md-4 col-sm-6">
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input class="form-check-input ms-0" type="checkbox" id="toggleFDE" onchange="updateSimulation()">
+                            <label class="form-check-label" for="toggleFDE">Full Disk Encryption</label>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-md-4 col-sm-6">
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input class="form-check-input ms-0" type="checkbox" id="toggleSIM" onchange="updateSimulation()">
+                            <label class="form-check-label" for="toggleSIM">SIM Lock PIN</label>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-md-4 col-sm-6">
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input class="form-check-input ms-0" type="checkbox" id="toggleWipe" onchange="updateSimulation()">
+                            <label class="form-check-label" for="toggleWipe">Remote Find/Wipe</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Virtual Smartphone Sandbox -->
+                <div class="col-lg-4 mb-4">
+                    <div class="phone-frame">
+                        <div class="phone-screen">
+                            <!-- Remote Wipe Overlay -->
+                            <div id="wipeOverlay" class="wipe-overlay">
+                                <i class="bi bi-shield-lock-fill text-success display-3 mb-3"></i>
+                                <h5 class="fw-bold text-white">DEVICE LOCKED & WIPED</h5>
+                                <p class="small text-secondary mb-3">Remote erase command executed. Local storage keys purged and physical access neutralized.</p>
+                                <span class="badge bg-success">FIND MY DEVICE ACTIVE</span>
+                            </div>
+
+                            <!-- Status Bar -->
+                            <div class="d-flex justify-content-between align-items-center text-light mb-2 px-1 fw-bold" style="font-size: 0.8rem;">
+                                <span>09:41</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span id="fdeBadge" class="badge bg-secondary" style="font-size: 0.65rem;">UNENCRYPTED</span>
+                                    <span id="simBadge" class="text-warning" style="font-size: 0.72rem;"><i class="bi bi-sim"></i> 5G</span>
+                                    <i class="bi bi-battery-full text-success"></i>
+                                </div>
+                            </div>
+
+                            <!-- Lockscreen Notification Area -->
+                            <div id="notifArea" class="mt-2">
+                                <div id="notifExposed" class="p-2 mb-2 rounded bg-dark border border-danger text-light small">
+                                    <strong class="text-warning"><i class="bi bi-chat-dots"></i> Bank SMS OTP</strong>
+                                    <div>Your OTP for login is <strong>482-910</strong>. Valid for 5 mins.</div>
+                                </div>
+                                <div id="notifHidden" class="p-2 mb-2 rounded bg-dark border border-success text-light small d-none">
+                                    <strong class="text-success"><i class="bi bi-eye-slash"></i> Messages</strong>
+                                    <div class="text-secondary">Notification content hidden while locked.</div>
+                                </div>
+                            </div>
+
+                            <!-- Hardware Storage Indicator -->
+                            <div class="mt-auto mb-3 p-2 rounded bg-dark border border-secondary text-center" style="font-size: 0.75rem;">
+                                <span id="storageStatusText" class="text-danger fw-bold">
+                                    <i class="bi bi-usb-symbol"></i> USB / ADB Storage Extraction: VULNERABLE
+                                </span>
+                            </div>
+
+                            <!-- Bottom App Dock -->
+                            <div class="row text-center g-2 mb-2">
+                                <div class="col-3">
+                                    <div class="app-wrapper">
+                                        <div class="app-icon bg-warning text-dark mx-auto" onclick="handleAppClick('Notes App', 'Stored ATM PINs & Passwords Exposed')">
+                                            <i class="bi bi-journal-text"></i>
+                                        </div>
+                                        <span class="app-lock-badge"><i class="bi bi-lock-fill"></i></span>
+                                    </div>
+                                    <small class="text-light d-block mt-1">Notes</small>
+                                </div>
+                                <div class="col-3">
+                                    <div class="app-wrapper">
+                                        <div class="app-icon bg-success text-white mx-auto" onclick="handleAppClick('Photos App', 'Passport & ID Scans Exposed')">
+                                            <i class="bi bi-image"></i>
+                                        </div>
+                                        <span class="app-lock-badge"><i class="bi bi-lock-fill"></i></span>
+                                    </div>
+                                    <small class="text-light d-block mt-1">Photos</small>
+                                </div>
+                                <div class="col-3">
+                                    <div class="app-wrapper">
+                                        <div class="app-icon bg-danger text-white mx-auto" onclick="handleAppClick('Banking App', 'Active UPI Session Hijacked')">
+                                            <i class="bi bi-bank"></i>
+                                        </div>
+                                        <span class="app-lock-badge"><i class="bi bi-lock-fill"></i></span>
+                                    </div>
+                                    <small class="text-light d-block mt-1">Banking</small>
+                                </div>
+                                <div class="col-3">
+                                    <div class="app-wrapper">
+                                        <div class="app-icon bg-info text-white mx-auto" onclick="handleAppClick('Mail App', 'Primary OAuth Reset Token Leaked')">
+                                            <i class="bi bi-envelope"></i>
+                                        </div>
+                                        <span class="app-lock-badge"><i class="bi bi-lock-fill"></i></span>
+                                    </div>
+                                    <small class="text-light d-block mt-1">Mail</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cyber Risk Score Meter & Dijkstra Path -->
+                <div class="col-lg-8">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="card-dark text-center p-3 h-100">
+                                <h5 class="text-light fw-bold mb-3">Cyber Risk Score</h5>
+                                
+                                <div class="meter-box mb-3">
+                                    <div id="riskScoreValue" class="score-val text-danger">83%</div>
+                                    <div class="meter-track">
+                                        <div id="riskMeterFill" class="meter-fill bg-danger" style="width: 83%;"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-secondary small mb-2">
+                                        <span>0% (Safe)</span>
+                                        <span>50%</span>
+                                        <span>100% (Critical)</span>
+                                    </div>
+                                    <span id="riskLevelLabel" class="badge bg-danger fs-6">CRITICAL RISK</span>
+                                </div>
+
+                                <div class="text-start mt-3">
+                                    <span class="risk-factors-heading">SCORE RISK FACTORS</span>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="risk-factor-tag">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div id="rf1" class="risk-dot active"></div>
+                                                    <span>External Network</span>
+                                                </div>
+                                                <small id="rf1Text" class="text-danger">SIM Open</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="risk-factor-tag">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div id="rf2" class="risk-dot active"></div>
+                                                    <span>Security Control</span>
+                                                </div>
+                                                <small id="rf2Text" class="text-danger">Unlocked</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="risk-factor-tag">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div id="rf3" class="risk-dot active"></div>
+                                                    <span>Dark Web Exposure</span>
+                                                </div>
+                                                <small id="rf3Text" class="text-danger">OTP Leak</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="risk-factor-tag">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div id="rf4" class="risk-dot active"></div>
+                                                    <span>Data Breach</span>
+                                                </div>
+                                                <small id="rf4Text" class="text-danger">Raw Disk</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <div class="card-dark h-100 p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="card-header-custom"><i class="bi bi-lightning-charge-fill text-warning"></i> Shortest Attack Path (Dijkstra)</div>
+                                    <span id="attackTimeBadge" class="badge bg-danger">Est. 45s</span>
+                                </div>
+                                <div id="attackPathContainer"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Response Checklist -->
+            <div class="emergency-card mt-2 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fw-bold text-danger fs-5"><i class="bi bi-exclamation-triangle-fill"></i> Localized Emergency Response Checklist</span>
+                    <span class="badge bg-danger">Immediate Actions</span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="action-step-card">
+                            <div class="fw-bold text-light mb-2"><i class="bi bi-crosshair text-info me-2"></i> 1. Remote Device Lock & Erase</div>
+                            <small class="text-muted">Log into <strong>Google Find My Device</strong> or <strong>Apple Find My</strong> immediately from a secondary browser to issue a full remote wipe command.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="action-step-card">
+                            <div class="fw-bold text-light mb-2"><i class="bi bi-sim-fill text-warning me-2"></i> 2. Block SIM Card (Carrier Lock)</div>
+                            <small class="text-muted">Contact customer support (<strong>Jio: 198</strong>, <strong>Airtel: 121</strong>, <strong>Vi: 198</strong>) to suspend your SIM and stop SMS OTP interception.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="action-step-card">
+                            <div class="fw-bold text-light mb-2"><i class="bi bi-phone-vibrate text-danger me-2"></i> 3. Blacklist IMEI on CEIR Portal</div>
+                            <small class="text-muted">File a lost report on the official Indian Government <strong>CEIR (Sanchar Saathi)</strong> portal using your IMEI number to block physical handset access across all networks.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ASSESSMENTS TAB -->
+        <div id="assessmentsTab" class="tab-content-view d-none">
+            <div class="card-dark p-4">
+                <h4 class="text-info fw-bold mb-3"><i class="bi bi-clipboard-check"></i> Security Posture Assessment</h4>
+                <p class="text-muted">Real-time verification of security controls compiled by the ANSI C Hash Table engine.</p>
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped">
+                        <thead>
+                            <tr>
+                                <th>Security Control</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Impact Rationale</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assessmentTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- GLOBAL REPORTS TAB -->
+        <div id="reportsTab" class="tab-content-view d-none">
+            <div class="card-dark p-4">
+                <h4 class="text-primary fw-bold mb-3"><i class="bi bi-globe"></i> Domain Exposure Reports</h4>
+                <p class="text-muted">Categorical breakdown of potential data exposure across critical vectors.</p>
+                <div class="row g-4 mt-1">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-dark border border-secondary rounded">
+                            <h6 class="text-warning fw-bold"><i class="bi bi-person-badge me-2"></i> Identity Domain</h6>
+                            <div class="progress my-2"><div id="reportBarIdentity" class="progress-bar bg-warning" style="width: 85%">85%</div></div>
+                            <small class="text-muted">National IDs, Driver's License scans, Passport photos.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-dark border border-secondary rounded">
+                            <h6 class="text-danger fw-bold"><i class="bi bi-bank me-2"></i> Financial Domain</h6>
+                            <div class="progress my-2"><div id="reportBarFinancial" class="progress-bar bg-danger" style="width: 95%">95%</div></div>
+                            <small class="text-muted">UPI apps, SMS 2FA codes, Plaintext ATM PINs in Notes.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-dark border border-secondary rounded">
+                            <h6 class="text-info fw-bold"><i class="bi bi-cloud-check me-2"></i> Work & Cloud Storage</h6>
+                            <div class="progress my-2"><div id="reportBarCloud" class="progress-bar bg-info" style="width: 70%">70%</div></div>
+                            <small class="text-muted">Active OAuth sessions, primary email access tokens.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- THREAT FEED TAB -->
+        <div id="threatFeedTab" class="tab-content-view d-none">
+            <div class="card-dark p-4">
+                <h4 class="text-warning fw-bold mb-3"><i class="bi bi-activity"></i> Live Intercept Stream</h4>
+                <p class="text-muted">Chronological event log capturing simulated access attempts on the device.</p>
+                <ul class="list-group list-group-flush" id="threatFeedList">
+                    <li class="list-group-item bg-transparent text-danger border-secondary"><i class="bi bi-circle-fill me-2 fs-6"></i> Physical Lockscreen access detected</li>
+                    <li class="list-group-item bg-transparent text-warning border-secondary"><i class="bi bi-circle-fill me-2 fs-6"></i> Lockscreen OTP preview intercepted</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- RISK TAB -->
+        <div id="riskTab" class="tab-content-view d-none">
+            <div class="card-dark p-4">
+                <h4 class="text-danger fw-bold mb-3"><i class="bi bi-diagram-3"></i> Priority Asset Ranking (Max-Heap)</h4>
+                <p class="text-muted">High-value assets ranked dynamically by risk score from the C Max-Heap engine.</p>
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Compromised Asset</th>
+                                <th>Domain</th>
+                                <th>Sensitivity</th>
+                            </tr>
+                        </thead>
+                        <tbody id="riskTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function switchTab(btn, tabId) {
+            document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.tab-content-view').forEach(view => view.classList.add('d-none'));
+            document.getElementById(tabId).classList.remove('d-none');
+        }
+
+        function handleAppClick(title, detail) {
+            const appLock = document.getElementById('toggleAppLock').checked;
+            const feed = document.getElementById('threatFeedList');
+            const item = document.createElement('li');
+
+            if (appLock) {
+                item.className = 'list-group-item bg-transparent text-success border-secondary';
+                item.innerHTML = `<i class="bi bi-shield-check me-2"></i> <strong>${title} Blocked:</strong> Biometric authentication prevented unauthorized access.`;
+                feed.prepend(item);
+                alert(`[Biometric App Lock Active]\nAccess to ${title} was BLOCKED.`);
+            } else {
+                item.className = 'list-group-item bg-transparent text-danger border-secondary';
+                item.innerHTML = `<i class="bi bi-exclamation-circle-fill me-2"></i> <strong>${title} Compromised:</strong> ${detail}`;
+                feed.prepend(item);
+                alert(`[Simulation Intercept] ${title}:\n${detail}`);
+            }
+        }
+
+        function resetToDefault() {
+            document.getElementById('toggleNotifs').checked = false;
+            document.getElementById('toggleAppLock').checked = false;
+            document.getElementById('toggleFDE').checked = false;
+            document.getElementById('toggleSIM').checked = false;
+            document.getElementById('toggleWipe').checked = false;
+            updateSimulation();
+        }
+
+        function updateVirtualPhone(hideNotifs, appLock, enableFde, simPin, remoteWipe) {
+            // 1. Lockscreen Previews Toggle
+            document.getElementById('notifExposed').classList.toggle('d-none', hideNotifs);
+            document.getElementById('notifHidden').classList.toggle('d-none', !hideNotifs);
+
+            // 2. Biometric App Lock Toggle
+            document.querySelectorAll('.app-lock-badge').forEach(badge => {
+                badge.style.display = appLock ? 'flex' : 'none';
+            });
+
+            // 3. Full Disk Encryption Toggle
+            const fdeBadge = document.getElementById('fdeBadge');
+            const storageText = document.getElementById('storageStatusText');
+            if (enableFde) {
+                fdeBadge.className = 'badge bg-success';
+                fdeBadge.innerText = 'FDE AES-256';
+                storageText.className = 'text-success fw-bold';
+                storageText.innerHTML = '<i class="bi bi-shield-lock"></i> USB / ADB Storage Extraction: ENCRYPTED & LOCKED';
+            } else {
+                fdeBadge.className = 'badge bg-secondary';
+                fdeBadge.innerText = 'UNENCRYPTED';
+                storageText.className = 'text-danger fw-bold';
+                storageText.innerHTML = '<i class="bi bi-usb-symbol"></i> USB / ADB Storage Extraction: VULNERABLE';
+            }
+
+            // 4. SIM Lock PIN Toggle
+            const simBadge = document.getElementById('simBadge');
+            if (simPin) {
+                simBadge.className = 'text-success';
+                simBadge.innerHTML = '<i class="bi bi-sim-fill"></i> SIM PIN LOCKED';
+            } else {
+                simBadge.className = 'text-warning';
+                simBadge.innerHTML = '<i class="bi bi-sim"></i> 5G (NO PIN)';
+            }
+
+            // 5. Remote Find/Wipe Toggle
+            document.getElementById('wipeOverlay').style.display = remoteWipe ? 'flex' : 'none';
+        }
+
+        function updateSimulation() {
+            const hideNotifs = document.getElementById('toggleNotifs').checked;
+            const appLock = document.getElementById('toggleAppLock').checked;
+            const enableFde = document.getElementById('toggleFDE').checked;
+            const simPin = document.getElementById('toggleSIM').checked;
+            const remoteWipe = document.getElementById('toggleWipe').checked;
+
+            // Update virtual phone visual states immediately
+            updateVirtualPhone(hideNotifs, appLock, enableFde, simPin, remoteWipe);
+
+            fetch('/api/simulate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    hide_notifs: hideNotifs,
+                    app_lock: appLock,
+                    enable_fde: enableFde,
+                    sim_pin: simPin,
+                    remote_wipe: remoteWipe
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                // Guarantee numeric score (never undefined%)
+                const score = (typeof data.exposure_score === 'number') ? data.exposure_score : 83;
+                const scoreVal = document.getElementById('riskScoreValue');
+                const meterFill = document.getElementById('riskMeterFill');
+                const levelLabel = document.getElementById('riskLevelLabel');
+
+                scoreVal.innerText = `${score}%`;
+                meterFill.style.width = `${score}%`;
+
+                // Color coding: Red (High >= 60), Orange/Yellow (Moderate 30-59), Green (Low < 30)
+                if (score >= 60) {
+                    scoreVal.className = 'score-val text-danger';
+                    meterFill.className = 'meter-fill bg-danger';
+                    levelLabel.innerText = 'CRITICAL / HIGH RISK';
+                    levelLabel.className = 'badge bg-danger fs-6';
+                } else if (score >= 30) {
+                    scoreVal.className = 'score-val text-warning';
+                    meterFill.className = 'meter-fill bg-warning';
+                    levelLabel.innerText = 'MODERATE RISK';
+                    levelLabel.className = 'badge bg-warning text-dark fs-6';
+                } else {
+                    scoreVal.className = 'score-val text-success';
+                    meterFill.className = 'meter-fill bg-success';
+                    levelLabel.innerText = 'SECURED / LOW RISK';
+                    levelLabel.className = 'badge bg-success fs-6';
+                }
+
+                // Update Score Risk Factors dynamically
+                updateFactor('rf1', 'rf1Text', !simPin && !remoteWipe, 'SIM Open', 'SIM Locked');
+                updateFactor('rf2', 'rf2Text', !appLock && !remoteWipe, 'Apps Open', 'App Locked');
+                updateFactor('rf3', 'rf3Text', !hideNotifs && !remoteWipe, 'OTP Visible', 'OTP Hidden');
+                updateFactor('rf4', 'rf4Text', !enableFde && !remoteWipe, 'Raw Disk', 'Encrypted');
+
+                // Update Dijkstra Attack Path
+                const pathContainer = document.getElementById('attackPathContainer');
+                const timeBadge = document.getElementById('attackTimeBadge');
+                pathContainer.innerHTML = '';
+
+                const isBlocked = remoteWipe || (hideNotifs && appLock && simPin && enableFde);
+                timeBadge.className = isBlocked ? 'badge bg-success' : 'badge bg-danger';
+                timeBadge.innerText = isBlocked ? 'Path Blocked' : `Est. ${data.attack_time_seconds || 45}s`;
+
+                if (Array.isArray(data.attack_path) && data.attack_path.length > 0) {
+                    data.attack_path.forEach((step) => {
+                        const blockedClass = (isBlocked || step.includes('Blocked') || step.includes('Severed')) ? 'blocked' : '';
+                        const icon = blockedClass ? 'bi-shield-fill-check' : 'bi-exclamation-triangle-fill text-danger';
+                        pathContainer.innerHTML += `<div class="path-step ${blockedClass}"><i class="bi ${icon}"></i> <span>${step}</span></div>`;
+                    });
+                }
+
+                // Render Assessment Tab
+                document.getElementById('assessmentTableBody').innerHTML = `
+                    <tr>
+                        <td>Lockscreen Previews</td><td>Notifications</td>
+                        <td><span class="badge ${hideNotifs ? 'bg-success' : 'bg-danger'}">${hideNotifs ? 'SECURED' : 'VULNERABLE'}</span></td>
+                        <td>${hideNotifs ? 'OTP SMS Snippets hidden on lock screen.' : '2FA SMS codes visible without unlock.'}</td>
+                    </tr>
+                    <tr>
+                        <td>Biometric App Lock</td><td>Application Data</td>
+                        <td><span class="badge ${appLock ? 'bg-success' : 'bg-danger'}">${appLock ? 'SECURED' : 'VULNERABLE'}</span></td>
+                        <td>${appLock ? 'Secondary authentication required for sensitive apps.' : 'Notes, Photos, and UPI open directly.'}</td>
+                    </tr>
+                    <tr>
+                        <td>Full Disk Encryption</td><td>Storage Files</td>
+                        <td><span class="badge ${enableFde ? 'bg-success' : 'bg-danger'}">${enableFde ? 'SECURED' : 'VULNERABLE'}</span></td>
+                        <td>${enableFde ? 'Storage encrypted at rest via AES-256.' : 'Files extractable via physical USB access.'}</td>
+                    </tr>
+                    <tr>
+                        <td>SIM Lock PIN</td><td>Cellular / SMS</td>
+                        <td><span class="badge ${simPin ? 'bg-success' : 'bg-danger'}">${simPin ? 'SECURED' : 'VULNERABLE'}</span></td>
+                        <td>${simPin ? 'SIM blocked on second device transfer.' : 'SIM moveable to intercept OTPs.'}</td>
+                    </tr>
+                    <tr>
+                        <td>Remote Find/Wipe</td><td>Device Recovery</td>
+                        <td><span class="badge ${remoteWipe ? 'bg-success' : 'bg-danger'}">${remoteWipe ? 'ACTIVE' : 'STANDBY'}</span></td>
+                        <td>${remoteWipe ? 'Device locked and wiped remotely.' : 'Device remains active for physical attacker.'}</td>
+                    </tr>
+                `;
+
+                // Render Reports Tab
+                const identityScore = data.domains ? data.domains.identity : 85;
+                const financialScore = data.domains ? data.domains.financial : 95;
+                const cloudScore = data.domains ? data.domains.cloud : 70;
+
+                document.getElementById('reportBarIdentity').style.width = `${identityScore}%`;
+                document.getElementById('reportBarIdentity').innerText = `${identityScore}%`;
+                document.getElementById('reportBarFinancial').style.width = `${financialScore}%`;
+                document.getElementById('reportBarFinancial').innerText = `${financialScore}%`;
+                document.getElementById('reportBarCloud').style.width = `${cloudScore}%`;
+                document.getElementById('reportBarCloud').innerText = `${cloudScore}%`;
+
+                // Render Risk Tab (Max-Heap)
+                const riskBody = document.getElementById('riskTableBody');
+                riskBody.innerHTML = '';
+                if (data.ranked_assets && data.ranked_assets.length > 0) {
+                    data.ranked_assets.forEach((asset, idx) => {
+                        riskBody.innerHTML += `
+                            <tr>
+                                <td>${idx + 1}</td>
+                                <td>${asset.name}</td>
+                                <td><span class="badge bg-secondary">${asset.domain}</span></td>
+                                <td><span class="badge bg-danger">${asset.score} / 100</span></td>
+                            </tr>`;
+                    });
+                } else {
+                    riskBody.innerHTML = '<tr><td colspan="4" class="text-success text-center">No Exposed Assets (Device Fully Secured)</td></tr>';
+                }
+            });
+        }
+
+        function updateFactor(dotId, textId, isVulnerable, vulnLabel, safeLabel) {
+            const dot = document.getElementById(dotId);
+            const txt = document.getElementById(textId);
+            if (isVulnerable) {
+                dot.className = 'risk-dot active';
+                txt.className = 'text-danger';
+                txt.innerText = vulnLabel;
+            } else {
+                dot.className = 'risk-dot';
+                txt.className = 'text-success';
+                txt.innerText = safeLabel;
+            }
+        }
+
+        window.onload = updateSimulation;
+    </script>
+</body>
+</html>
